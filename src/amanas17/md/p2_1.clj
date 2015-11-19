@@ -1,18 +1,13 @@
 (ns amanas17.md.p2_1
-  (:require [clojure.math.combinatorics :as combo]
-            [clojure.data.csv :as csv]
-            [clojure.java.io :as io])
-  (:use  [clj-ml.io ]
-         [clj-ml.classifiers]
-         [clj-ml.data]
-         [clj-ml.utils]))
+  (:require [clojure.data.csv :as csv]
+            [clojure.java.io :as io]))
 
 (defn xor [& more]
-  (reduce (fn [a b] (if-not (= a b) 1 0)) more))
+  (reduce not= more))
 
 (def  vars [:A :B :C :D :E :Y])
 
-(def file "resources/md-p1.dat")
+(def file "resources/md/p2_1/p2_1.dat")
 
 (defn load-data []
   (when (.exists (io/as-file file))
@@ -28,14 +23,14 @@
     (csv/write-csv out-file [(map name vars)])
     (csv/write-csv out-file (map #(map %1 vars) data))))
 
-;; A B C
+;; A B C random
 ;; D = b xor c
 ;; E
 ;; Y = a xor d
 (defn generate-data []
-  (->> #(let [a (Math/round (rand))
-              b (Math/round (rand))
-              c (Math/round (rand))
+  (->> #(let [a (< 0.5 (Math/round (rand)))
+              b (< 0.5 (Math/round (rand)))
+              c (< 0.5 (Math/round (rand)))
               d (xor b c)
               e (float (rand))
               y (xor a d)]
@@ -47,30 +42,31 @@
               (save-data (generate-data))
               (load-data)))
 
+
 (defn submap? [sub m]
   (.containsAll (.entrySet m) (.entrySet sub)))
 
 (defn instances [conds]
   (filter (partial submap? conds) data))
-(prn (instances {:A 1}))
+(prn (instances {:A true}))
 
 (defn P [conds]
   (->> [conds {}] (map instances) (map count) (apply /)))
-(prn (P {:A 1}))
+(prn (P {:A false}))
 
 (defn Pcond [cond conds]
   (let [pos (instances (merge cond conds))
         all (instances conds)]
     (->> [pos all] (map count) (apply /))))
-(prn (Pcond {:Y 1} {:A 0}))
+(prn (Pcond {:Y true} {:A false}))
 
 (defn strong?
   ([cond conds] (or (= 0 (P (merge cond conds)))
                     (->> [(merge cond conds) conds]
-                         (map (partial Pcond {:Y 1}))
+                         (map (partial Pcond {:Y true}))
                          (apply not=)))))
 
-(prn (strong? {:A 1} {:C 0 :B 1}))
+(prn (strong? {:A true} {:C false :B true}))
 
 ;; Sean a=true, b=true, c=true y d=true
 ;; Vamos a demostrar la relevancia fuerte de A.
@@ -81,16 +77,3 @@
 ;; (assert (not= 0 (P [:a :c :d])))
 ;; (Pcond :y [:a :c :d])
 ;; (Pcond :y [:a :d])
-
-
-;; data mining
-(prn 1)
-(def ds (-> (load-instances :csv file)
-            (dataset-set-class :Y)))
-(prn ds)
-(count (dataset-seq ds))
-;; (def classifier (-> (make-classifier :decision-tree :c45)
-;;                     (classifier-train ds)))
-;; (def evaluation (classifier-evaluate classifier :cross-validation ds 10))
-
-;; (clojure.pprint/pprint (:summary evaluation))
