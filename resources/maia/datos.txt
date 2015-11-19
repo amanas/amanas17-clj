@@ -1,0 +1,35 @@
+
+He tardado 45 minutos en el ejercicio 1
+
+perspectiva: valor nominal del estado observado de las condiciones meteorológicas del día con valores (nublado, soleado, lluvioso, niebla, diluvia)
+temperatura: valor numérico con valores típicamente en el intervalo (0,45)
+humedad: valor numérico en el intervalo [0,100]
+viento: valor nominal con valores (fuerte,brisa,no)
+animo: valor nominal con el estado de ánimo de la persona que va a salir (contento, normal, triste). Un mal estado de ánimo puede condicionar una salida al campo.
+estres: valor nominal con el nivel de estrés de la persona que planea salir al campo (relajado, normal, estresado). El estrés puede invitar a ir al campo
+dinero: valor nominal con la disponibilidad de dinero para gastos en el momento de la decisión (solvente, ajustado, insuficiente). La carencia de dinero puede limitar una salida al campo
+clase: valor nominal con posibles valores + (es un buen día para salir, fantástico incluso) o - (uff, casi mejor nos quedamos en casita)
+
+
+
+perspectiva temperatura humedad viento animo estres dinero clase
+nublado 20 90 fuerte contento relajado ajustado -
+soleado 25 86 brisa contento relajado solvente +
+lluvioso 30 70 brisa normal normal insuficiente -
+niebla 28 80 no contento estresado solvente +
+diluvia 35 75 no normal relajado ajustado -
+nublado 22 84 brisa triste normal solvente -
+soleado 37 95 fuerte normal estresado solvente -
+lluvioso 31 82 brisa contento relajado solvente +
+niebla 26 78 no triste estresado insuficiente -
+diluvia 27 79 brisa contento normal solvente -
+nublado 32 92 fuerte contento relajado ajustado -
+soleado 24 86 brisa normal relajado insuficiente +
+lluvioso 18 81 brisa triste estresado insuficiente -
+niebla 15 70 no contento relajado solvente +
+diluvia 20 70 fuerte normal estresado insuficiente -
+nublado 16 65 brisa contento relajado solvente -
+soleado 30 90 no contento normal solvente +
+lluvioso 40 92 brisa triste estresado ajustado -
+niebla 28 88 brisa normal normal solvente +
+diluvia 29 80 fuerte contento normal ajustado -
