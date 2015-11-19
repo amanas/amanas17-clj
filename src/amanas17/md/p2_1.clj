@@ -7,7 +7,7 @@
 
 (def  vars [:A :B :C :D :E :Y])
 
-(def file "resources/md/p2_1/p2_1.dat")
+(def file "resources/md/p2_1/p2_1.csv")
 
 (defn load-data []
   (when (.exists (io/as-file file))
