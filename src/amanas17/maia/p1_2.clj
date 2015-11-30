@@ -7,5 +7,7 @@
 (defn leer-ejemplos [f]
   (read-string (slurp f)))
 
-(assert (= :perspectiva (first (ffirst (leer-ejemplos "resources/maia/ejemplos.scm")))))
+(def ejemplos (leer-ejemplos "resources/maia/ejemplos.scm"))
+
+(assert (= 21 (count ejemplos)))
 (he-tardado 60 7)
