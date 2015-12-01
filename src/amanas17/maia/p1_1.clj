@@ -36,21 +36,28 @@
                             inv-freqs (map #(/ % total) freqs)
                             cum-freqs (reductions + inv-freqs)
                             intervals (partition 2 1 (cons 0 cum-freqs))]
-                        (zipmap intervals pairs)))))
+                        (zipmap intervals (map first pairs))))))
 
 (defn obtener-al-azar [[one & more :as elements]]
   (cond
-    (coll? one) (let [cdf-1 (cdf-1 elements)
-                          r (rand)]
-                      (->> cdf-1
-                           keys
-                           (filter (fn [[a b]] (<= a r b)))
-                           first
-                           (get cdf-1)))
-    :default (obtener-al-azar (map (fn [v] (vector v 1)) elements))))
+    (empty? elements)
+    nil
+    (and (coll? one)
+         (= 2 (count one))
+         (number? (second one)))
+    (let [cdf-1 (cdf-1 elements)
+          r (rand)]
+      (->> cdf-1
+           keys
+           (filter (fn [[a b]] (<= a r b)))
+           first
+           (get cdf-1)))
+    :default
+    (obtener-al-azar (map (fn [v] (vector v 1)) elements))))
 
 (def example-1 [[:a 1] [:b 2] [:c 3]])
-(assert (some (set example-1) [(obtener-al-azar example-1)]))
+(assert (some (set (map first example-1)) [(obtener-al-azar example-1)]))
+(assert (some #{1 2} [(obtener-al-azar [1 2])]))
 (prn (frequencies (take 6000 (repeatedly #(obtener-al-azar example-1)))))
 (he-tardado 120 5)
 
