@@ -30,13 +30,13 @@
 (he-tardado 20 4)
 
 ; ejercicio 5
-(def cdf-1 (memoize (fn [pairs]
-                      (let [freqs (map second pairs)
-                            total (apply + freqs)
-                            inv-freqs (map #(/ % total) freqs)
-                            cum-freqs (reductions + inv-freqs)
-                            intervals (partition 2 1 (cons 0 cum-freqs))]
-                        (zipmap intervals (map first pairs))))))
+(def cdf-1 (fn [pairs]
+             (let [freqs (map second pairs)
+                   total (apply + freqs)
+                   inv-freqs (map #(/ % total) freqs)
+                   cum-freqs (reductions + inv-freqs)
+                   intervals (partition 2 1 (cons 0 cum-freqs))]
+               (zipmap intervals pairs))))
 
 (defn obtener-al-azar [[one & more :as elements]]
   (cond
@@ -53,10 +53,10 @@
            first
            (get cdf-1)))
     :default
-    (obtener-al-azar (map (fn [v] (vector v 1)) elements))))
+    (first (obtener-al-azar (map (fn [v] (vector v 1)) elements)))))
 
 (def example-1 [[:a 1] [:b 2] [:c 3]])
-(assert (some (set (map first example-1)) [(obtener-al-azar example-1)]))
+(assert (some (set example-1) [(obtener-al-azar example-1)]))
 (assert (some #{1 2} [(obtener-al-azar [1 2])]))
 (prn (frequencies (take 6000 (repeatedly #(obtener-al-azar example-1)))))
 (he-tardado 120 5)
