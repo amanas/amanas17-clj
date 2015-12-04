@@ -1,7 +1,8 @@
 (ns amanas17.maia.p1-1)
 
 (defn he-tardado [m e]
-  (prn (str "He tardado " m " minutos en el ejercicio " e)))
+  ;; (prn)
+  (str "He tardado " m " minutos en el ejercicio " e))
 
 ; ejercicio 2
 (defn siguiente [l]
