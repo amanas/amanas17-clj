@@ -4,7 +4,9 @@
         [amanas17.maia.p1-3]))
 
 ;; Para los siguientes ejercicios, primero traduzco a clojure la función A0
-(defn A0 [ejemplos]
+(defn A0
+  "Algoritmo de aprendizaje -  devuelve el concepto que se corresponde con la clase mayoritaria en los ejemplos de entrenamiento"
+  [ejemplos]
   (let [;;Asignacion de VARIABLES locales
         ;;==================================
         atributos (first ejemplos)
@@ -43,7 +45,9 @@
     ;;Y por ultimo se devuelve el concepto inducido por el algoritmo.
     @concepto))
 
-(defn A0i [concepto ejemplo-sin-clase]
+(defn A0i
+  "Intérprete del algoritmo A0"
+  [concepto ejemplo-sin-clase]
   (concat ejemplo-sin-clase [concepto]))
 
 
@@ -67,10 +71,10 @@
 ;; Ejercicio 16
 (defn calcula-precision [ejemplos extension]
   (let [todos (count (rest ejemplos))
-        aciertos (->> [(rest ejemplos) (rest extension)] (apply interleave)
+        aciertos (->> [(rest ejemplos) (rest extension)]
+                      (apply interleave)
                       (partition 2)
-                      (filter (fn [[ej ex]](= (last ej) (last ex))))
-                      count)]
+                      (filter (fn [[ej ex]](= (last ej) (last ex))))                                         count)]
     (/ aciertos todos)))
 (def precision (calcula-precision ejemplos extension))
 (assert (= precision 13/20))
@@ -91,7 +95,7 @@
 (def ejemplos-sin-clase2 (map butlast ejemplos2))
 (def extension2-A0-A0i (map (partial A0i esencia) ejemplos-sin-clase2))
 (def precision2-A0-A0i (calcula-precision ejemplos2 extension2-A0-A0i))
-(def error2-A0-A0i (calcula-error ejemplos2 extension2_A0_A0i))
+(def error2-A0-A0i (calcula-error ejemplos2 extension2-A0-A0i))
 (assert (= precision2-A0-A0i 3/5))
 (assert (= error2-A0-A0i 2/5))
 
@@ -110,7 +114,9 @@
 (he-tardado 90 17)
 
 ;; Ejercicio 18
-(defn A1 [ejemplos]
+(defn A1
+  "Algortimo de aprendizaje que devuelve la contabilización de los distintos valores de la clase en los ejemplos"
+  [ejemplos]
   (let [;;Asignacion de VARIABLES locales
         ;;==================================
         atributos (first ejemplos)
@@ -142,8 +148,10 @@
     (vec @clases-contabilizadas)))
 (assert  (= (A1 ejemplos) [[:+ 7] [:- 13]]))
 
-(defn A1i [concepto ejemplo-sin-clase]
-  (concat ejemplo-sin-clase [(key (obtener-al-azar concepto))]))
+(defn A1i
+  "Infiere la clase de acuerdo con la frecuencia que ésta presenta en los ejemplos"
+  [concepto ejemplo-sin-clase]
+  (concat ejemplo-sin-clase [(first (obtener-al-azar concepto))]))
 
 (defn clasifica-con-A1-A1i [ejemplos2]
   (let [ejemplos-sin-clase2 (map butlast ejemplos2)
@@ -151,6 +159,9 @@
         precision2-A1-A1i (calcula-precision ejemplos2 extension2-A1-A1i)
         error2-A1-A1i (calcula-error ejemplos2 extension2-A1-A1i)]
     [precision2-A1-A1i error2-A1-A1i]))
+
+(comment "One classification"
+         (clasifica-con-A1-A1i ejemplos2))
 
 (he-tardado 60 18)
 
@@ -189,34 +200,71 @@
 
 
 ;; Ejercicio 20
-(def concepto-inicial {:+ 0 :- 0})
+(def concepto-inicial [[:+ 0] [:- 0]])
 (defn IIA1 [descripcion-atributos concepto ejemplo]
-  (assoc concepto (last ejemplo) (inc (get concepto (last ejemplo)))))
+  (let [cm (apply hash-map (flatten concepto))]
+    (seq (assoc cm (last ejemplo) (inc (get cm (last ejemplo)))))))
 
-(assert (= {:+ 1 :- 0} (IIA1 (first ejemplos) concepto-inicial [:nubledo 25 80 :no :+])) )
+(assert (= [[:- 0] [:+ 1]] (IIA1 (first ejemplos) concepto-inicial [:nublado 25 80 :no :+])))
 
 (he-tardado 30 20)
 
 ;; Ejercicio 21
-(defn IA1 [ejemplos]
+(defn IA1
+  "Implementación incremental del algoritmo A1"
+  [ejemplos]
   (reduce (partial IIA1 (first ejemplos)) concepto-inicial (rest ejemplos)))
 
-(assert (= {:+ 7 :- 13} (IA1 ejemplos)))
+(assert (= [[:- 13] [:+ 7]] (IA1 ejemplos)))
 
 (he-tardado 15 21)
 
 
 ;; Ejercicio 22
+
+(def all-ejemplos (into ejemplos (rest ejemplos2)))
+
 (defn resustitution
-  "Devuelve la precición total del algoritmo de aprendizaje sobre los ejemplos"
+  "Calcula la precición del algoritmo de aprendizaje utilizando
+   todos los casos para entrenar y evaluar"
   [entrenador interprete ejemplos]
   (let [concepto (entrenador ejemplos)
         ejemplos-sin-clase (map butlast ejemplos)
         extension (map (partial interprete concepto) ejemplos-sin-clase)]
     (calcula-precision ejemplos extension)))
 
+(comment "Precisión con resustitución  A0 A0i"
+         (resustitution  A0 A0i all-ejemplos))
+(comment "Precisión con resustitución  A1 A1i"
+         (resustitution  A1 A1i all-ejemplos))
+(comment "Precisión con resustitución IA1 A1i"
+         (resustitution IA1 A1i all-ejemplos))
 
-(IA1 ejemplos)
-(resustitution A0 A0i ejemplos)
-(resustitution A1 A1i ejemplos)
-(resustitution IA1 A1i ejemplos)
+(defn leave-one-out
+  "Por cada ejemplo:
+    - se toma el ejemplo como prueba
+    - se toma el conjunto complementario de ejemplos como entrenamiento
+   Todas estas pruebas se agregan para conseguir el resultado final"
+  ([entrenador interprete ejemplos]
+   (let [precisiones (map (partial leave-one-out entrenador interprete ejemplos)
+                          (->> ejemplos count dec range))]
+     (/ (apply + precisiones) (count precisiones))))
+  ([entrenador interprete ejemplos index]
+   (let [header (first ejemplos)
+         body (rest ejemplos)
+         prueba [header (nth body index)]
+         entrenamiento (concat [header] (take index body) (drop (inc index) body))
+         concepto (entrenador entrenamiento)
+         extension (map (partial interprete concepto) (map butlast prueba))]
+     (calcula-precision prueba extension))))
+
+
+(comment "Precisión con leave-one-out  A0 A0i"
+         (leave-one-out  A0 A0i all-ejemplos))
+(comment "Precisión con leave-one-out  A1 A1i"
+         (leave-one-out  A1 A1i all-ejemplos))
+(comment "Precisión con leave-one-out IA1 A1i"
+         (leave-one-out IA1 A1i all-ejemplos))
+
+
+;(he-tardado 360 22)
