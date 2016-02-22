@@ -1,8 +1,7 @@
 (ns amanas17.maia.p1-1)
 
 (defn he-tardado [m e]
-  ;; (prn)
-  (str "He tardado " m " minutos en el ejercicio " e))
+  (prn (str "He tardado " m " minutos en el ejercicio " e)))
 
 ; ejercicio 2
 (defn siguiente [l]
@@ -59,11 +58,11 @@
 (def example-1 [[:a 1] [:b 2] [:c 3]])
 (assert (some (set example-1) [(obtener-al-azar example-1)]))
 (assert (some #{1 2} [(obtener-al-azar [1 2])]))
-(prn (frequencies (take 6000 (repeatedly #(obtener-al-azar example-1)))))
+(comment (prn (frequencies (take 6000 (repeatedly #(obtener-al-azar example-1))))))
 (he-tardado 120 5)
 
 ; ejercicio 6 - impementado en el 5
 (def example-2 [:a :b :c])
 (assert (obtener-al-azar example-2))
-(prn (frequencies (take 6000 (repeatedly #(obtener-al-azar example-2)))))
+(comment (prn (frequencies (take 6000 (repeatedly #(obtener-al-azar example-2))))))
 (he-tardado 60 6)
