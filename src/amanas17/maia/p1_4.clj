@@ -222,7 +222,7 @@
 
 ;; Ejercicio 22
 
-(def all-ejemplos (into ejemplos (rest ejemplos2)))
+(def all-ejemplos (mezclar ejemplos ejemplos2))
 
 (defn resustitution
   "Calcula la precición del algoritmo de aprendizaje utilizando
@@ -250,10 +250,10 @@
                           (->> ejemplos count dec range))]
      (/ (apply + precisiones) (count precisiones))))
   ([entrenador interprete ejemplos index]
-   (let [header (first ejemplos)
+   (let [desc (first ejemplos)
          body (rest ejemplos)
-         prueba [header (nth body index)]
-         entrenamiento (concat [header] (take index body) (drop (inc index) body))
+         prueba [desc (nth body index)]
+         entrenamiento (concat [desc] (take index body) (drop (inc index) body))
          concepto (entrenador entrenamiento)
          extension (map (partial interprete concepto) (map butlast prueba))]
      (calcula-precision prueba extension))))
@@ -266,5 +266,64 @@
 (comment "Precisión con leave-one-out IA1 A1i"
          (leave-one-out IA1 A1i all-ejemplos))
 
+(he-tardado 360 22)
 
-;(he-tardado 360 22)
+
+;; Ejercicio 23
+(defn holdout
+  "Técnica de aprendizaje consistente en entrenar con el conjunto entrenamiento
+   y evaluar con el conjunto evaluacion"
+  [entrenador interprete entrenamiento evaluacion]
+  (let [concepto (entrenador entrenamiento)
+        extension (map (partial interprete concepto) (map butlast evaluacion))]
+    (calcula-precision evaluacion extension)))
+
+(defn separar-desc-sensitive
+  "Separa teniendo en cuenta la descripción en la lista de entrada
+   y agregándola en las listas de salida"
+  [p [desc & body :as ejemplos]]
+  (->> body
+       (separar p)
+       (map (fn [fold] (into [desc] fold)))))
+
+(let [[entrenamiento evaluacion] (separar-desc-sensitive 2/3 all-ejemplos)]
+  (prn "Precisión con holdout  A0 A0i"
+       (holdout  A0 A0i entrenamiento evaluacion))
+  (prn "Precisión con holdout  A1 A1i"
+       (holdout  A1 A1i entrenamiento evaluacion))
+  (prn "Precisión con holdout IA1 A1i"
+       (holdout IA1 A1i entrenamiento evaluacion)))
+
+(he-tardado 90 23)
+
+
+;; Ejercicio 24
+(defn folds-desc-sensitive
+  "Genera folds teniendo en cuenta la descripción en la lista de entrada
+   y agregándola en las listas de salida"
+  [[desc & body :as ejemplos] n]
+  (->> (folds body  n)
+       (map (fn [fold] (into [desc] fold)))))
+
+(defn cross-validation
+  "Técnica de apendizaje consistente en:
+    - generar tantos folds en el conjunto entrenamiento como indica n-folds
+    - para cada fold entrenar en el conjunto de ejemplos que no están en el fold
+    - para cada fold evaluar con el conjunto de ejemplos del fold
+    - devuelve la media de las precisiones"
+  [entrenador interprete entrenamiento n-folds]
+  (let [folds (folds-desc-sensitive entrenamiento n-folds)
+        entre-eval-groups (for [n (range n-folds)]
+                            (let [entrenamiento (->> (drop (inc n) folds)
+                                                     (into (take n folds))
+                                                     (reduce mezclar))
+                                  evaluacion (nth folds n)]
+                              [entrenamiento evaluacion]))
+        precisiones (->> entre-eval-groups
+                         (map (partial apply holdout entrenador interprete)))]
+    (/ (apply + precisiones) (count precisiones))))
+
+;; Se comprueba el test indicado en el material de la práctica, pero teniendo en
+;; cuenta que tenemos 25 ejemplos en lugar de 3
+(assert (= (cross-validation A0 A0i all-ejemplos 25)
+           (leave-one-out A0 A0i all-ejemplos)))
