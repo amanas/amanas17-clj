@@ -47,11 +47,7 @@
          (number? (second one)))
     (let [cdf-1 (cdf-1 elements)
           r (rand)]
-      (->> cdf-1
-           keys
-           (filter (fn [[a b]] (<= a r b)))
-           first
-           (get cdf-1)))
+      (->> cdf-1 keys (filter (fn [[a b]] (<= a r b))) first (get cdf-1)))
     :default
     (first (obtener-al-azar (map (fn [v] (vector v 1)) elements)))))
 
