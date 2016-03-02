@@ -18,9 +18,9 @@
         extension (map (partial interprete concepto) ejemplos-sin-clase)]
     (calcula-precision ejemplos extension)))
 
-(prn "Precisión con resustitución  A0 A0i" (resustitution  A0 A0i all-ejemplos))
-(prn "Precisión con resustitución  A1 A1i" (resustitution  A1 A1i all-ejemplos))
-(prn "Precisión con resustitución IA1 A1i" (resustitution IA1 A1i all-ejemplos))
+(comment
+  (prn "Precisión con resustitución  A0 A0i" (resustitution  A0 A0i all-ejemplos))
+  (prn "Precisión con resustitución  A1 A1i" (resustitution  A1 A1i all-ejemplos)))
 
 (defn leave-one-out
   "Por cada ejemplo:
@@ -39,10 +39,9 @@
          extension (map (partial interprete concepto) (map butlast prueba))]
      (calcula-precision prueba extension))))
 
-
-(prn "Precisión con leave-one-out  A0 A0i" (leave-one-out  A0 A0i all-ejemplos))
-(prn "Precisión con leave-one-out  A1 A1i" (leave-one-out  A1 A1i all-ejemplos))
-(prn "Precisión con leave-one-out IA1 A1i" (leave-one-out IA1 A1i all-ejemplos))
+(comment
+  (prn "Precisión con leave-one-out  A0 A0i" (leave-one-out  A0 A0i all-ejemplos))
+  (prn "Precisión con leave-one-out  A1 A1i" (leave-one-out  A1 A1i all-ejemplos)))
 
 (he-tardado 360 22)
 
@@ -57,10 +56,10 @@
         extension (map (partial interprete concepto) (map butlast evaluacion))]
     (calcula-precision evaluacion extension)))
 
-(let [[entrenamiento evaluacion] (separar 2/3 all-ejemplos)]
-  (prn "Precisión con holdout  A0 A0i" (holdout  A0 A0i entrenamiento evaluacion))
-  (prn "Precisión con holdout  A1 A1i" (holdout  A1 A1i entrenamiento evaluacion))
-  (prn "Precisión con holdout IA1 A1i" (holdout IA1 A1i entrenamiento evaluacion)))
+(comment
+  (let [[entrenamiento evaluacion] (separar 2/3 all-ejemplos)]
+    (prn "Precisión con holdout  A0 A0i" (holdout  A0 A0i entrenamiento evaluacion))
+    (prn "Precisión con holdout  A1 A1i" (holdout  A1 A1i entrenamiento evaluacion))))
 
 (he-tardado 90 23)
 

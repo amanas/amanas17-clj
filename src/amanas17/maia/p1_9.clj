@@ -3,7 +3,7 @@
         [amanas17.maia.p1-3]
         [amanas17.maia.p1-4]
         [amanas17.maia.p1-5]))
- 
+
 ;; Ejercicio 20
 (def concepto-inicial [[:+ 0] [:- 0]])
 (defn IIA1 [descripcion-atributos concepto ejemplo]
@@ -26,4 +26,4 @@
 
 (he-tardado 15 21)
 
-
+(he-tardado "una buena cantidad de" "autoencomendado de afinar todas las funciones correspondientes a la primera práctica")

@@ -22,9 +22,7 @@
 
 ; ejercico 4
 (defn factorial [n]
-  (if (= 1 n)
-    1
-    (* n (factorial (dec n)))))
+  (if (= 1 n) 1 (->> n dec factorial (* n))))
 
 (assert (= (factorial 5) 120))
 (he-tardado 20 4)
