@@ -1,4 +1,6 @@
-(ns amanas17.maia.p2-1)
+(ns amanas17.maia.p2-1
+  (:use [amanas17.maia.p1-1]
+        [amanas17.maia.p1-3]))
 
 ;; Ejercicios 1 a 5 de la práctica 2
 
@@ -89,25 +91,24 @@
   "Determina si un atributo numérico satisface un test numérico o ambivalente"
   [test atributo]
   (or (match-ambivalente? test atributo)
-      (let [[a b] test
-            left (cond (nil? b)    (partial = (first (flatten [a])))
-                       (coll? a)   (partial <= (first a))
-                       (= :-inf a) (constantly true)
-                       (= :+inf a) (constantly false)
-                       :else       (partial < a))
-            right (cond (nil? b)    (constantly true)
-                        (coll? b)   (partial >= (first b))
-                        (= :-inf b) (constantly false)
-                        (= :+inf b) (constantly true)
-                        :else       (partial > b))]
-        (and (left atributo)
-             (right atributo)))))
+      (and (= 1 (count test))
+           (= (first test) atributo))
+      (and (= 2 (count test))
+           (let [[a b] test
+                 left (cond (coll? a)   (partial <= (first a))
+                            (= :-inf a) (constantly true)
+                            (= :+inf a) (constantly false)
+                            :else       (partial < a))
+                 right (cond (coll? b)   (partial >= (first b))
+                             (= :-inf b) (constantly false)
+                             (= :+inf b) (constantly true)
+                             :else       (partial > b))]
+             (and (left atributo) (right atributo))))))
 
 (assert (not (match-numerico? [] 1)))
 (assert (match-numerico? [*] 1))
 (assert (match-numerico? [1] 1))
 (assert (match-numerico? [1 2] 1.5))
-(assert (match-numerico? [[1]] 1))
 (assert (match-numerico? [[1] 2] 1))
 (assert (match-numerico? [1 [2]] 2))
 (assert (match-numerico? [[1] [2]] 1))
@@ -126,6 +127,7 @@
          (test-nominal? test) (match-nominal? test atributo)
          :else (match-ambivalente? test atributo))))
 
+;; Ejercicio 1
 (defn match-CL
   "Determina si un conjunto de atributos satisfacen un conjunto de tests"
   [[& tests :as  concepto]
@@ -138,3 +140,171 @@
 (assert      (match-CL [[:soleado] [*] [10 [40]] [:si]] [:soleado 30 40 :si]))
 (assert (not (match-CL [[:soleado] [*] [10 40] [:si]]   [:soleado 30 25 :no])))
 (assert (not (match-CL [[:soleado] [*] [10 40] [:si]]   [30 :soleado 25 :no])))
+
+(he-tardado 360 2.1)
+
+
+;; Ejercicio 2
+(defn CLi
+  "Intérprete basado en conjunciones lógicas"
+  [concepto ejemplo-sin-clase]
+  (concat ejemplo-sin-clase [(if (match-CL concepto ejemplo-sin-clase) :+ :-)]))
+
+;; Nota:
+;; hay un error tipográfico en este ejemplo en el material de estudio
+(assert (= [:soleado 30 40 :si :+]
+           (CLi [[:soleado] [*] [10 [40]] [:si]] [:soleado 30 40 :si])))
+
+(he-tardado 45 2.2)
+
+
+;; Ejercicio 3
+;; Mi entendimiento de la lectura del enunciado es que este ejercicio
+;; no implica programar sino simplemente enunciar los coceptos más
+;; incluyentes y excluyentes.
+
+;; Como mis ejemplos tienen 7 atributos más la clase, debería ser
+(def concepto-mas-general-posible [[*] [*] [*] [*] [*] [*] [*]])
+(def concepto-mas-especifico-posible [[] [] [] [] [] [] []])
+;; Un concepto que para mí podría suponer un buen día para salir al campo es
+(def concepto-mas-cercano-para-mi [[:soleado]
+                                   [20 30]
+                                   [60 80]
+                                   [:brisa :no]
+                                   [:contento :normal]
+                                   [*]
+                                   [:solvente :ajustado]])
+
+(he-tardado 20 2.3)
+
+
+;; Ejercicio 4
+(defn concepto-CL-mas-general
+  "Devuelve el concepto CL más general posible dada la descripción de
+   atributos de un conjunto de datos.
+   Metadatos se entiende que es la cabecera de descripción de atributos"
+  [metadatos]
+  (repeat (dec (count metadatos)) [*]))
+
+(assert (= [[*] [*] [*] [*] [*] [*] [*]]
+           (concepto-CL-mas-general (first ejemplos))))
+
+(he-tardado 20 2.5)
+
+;; Ejercicio 5
+(defn concepto-CL-mas-especifico
+  "Devuelve el concepto CL más específico posible dada la descripción de
+   atributos de un conjunto de datos.
+   Metadatos se entiende que es la cabecera de descripción de atributos"
+  [metadatos]
+  (repeat (dec (count metadatos)) []))
+
+(assert (= [[] [] [] [] [] [] []]
+           (concepto-CL-mas-especifico (first ejemplos))))
+
+(he-tardado 3 2.6)
+
+
+(defn- test-ambivalente>=
+  "Indica si un test ambivalente es más general o de la misma categoría
+   que otro"
+  [test1 test2]
+  (or (= [*] test1)
+      (= [] test2)))
+
+(assert (test-ambivalente>= [*] [*]))
+(assert (test-ambivalente>= [*] []))
+(assert (test-ambivalente>= [] []))
+(assert (not (test-ambivalente>= [] [*])))
+
+(defn- limite=
+  "Indica si un límite de un intervalo es igual.
+   Pueden ser cerrados '[number]' o abiertos 'number'"
+  [left right]
+  (cond (or (every? coll? [left right])
+            (every? number? [left right])
+            (some #{:-inf :+inf} [left right])) (= left right)
+        (number? left) (< left (first right))
+        :else (< (first left) right)))
+
+(defn- limite<
+  "Indica si un límite de un intervalo es anterior a otro.
+   Pueden ser cerrados '[number]' o abiertos 'number'"
+  [left right]
+  (cond (= :-inf left) true
+        (= :+inf left) false
+        (= :-inf right) false
+        (= :+inf right) true
+        (every? coll? [left right]) (< (first left) (first right))
+        (every? number? [left right]) (< left right)
+        (number? left) (< left (first right))
+        :else (<= (first left) right)))
+
+(defn- limite<=
+  "Indica si un límite de un intervalo es anterior o igual a otro.
+   Pueden ser cerrados '[number]' o abiertos 'number'"
+  [left right]
+  (or (limite= left right)
+      (limite< left right)))
+
+(defn- test-numerico>=
+  "Indica si un test numérico es más general o de la misma categoría
+   que otro"
+  [[v11 v12 :as test1] [v21 v22 :as test2]]
+  (cond (nil? v12) (test-numerico>= [v11 v11] [v21 v22])
+        (nil? v22) (test-numerico>= [v11 v12] [v21 v21])
+        :else (or (and (limite<= v11 v21)
+                       (limite<= v22 v12))
+                  (and (limite<= v21 v11)
+                       (not (limite<= v12 v22))))))
+
+(assert (and
+         [(test-numerico>= [1 2] [3 4])
+          (test-numerico>= [1 4] [2 3])
+          (test-numerico>= [1 3] [2 4])
+          (test-numerico>= [1 4] [2 3])
+          (not (test-numerico>= [2 3] [1 4]))
+          (test-numerico>= [1] [1])
+          (test-numerico>= [1] [1 1])
+          (test-numerico>= [1 1] [1])
+          (test-numerico>= [1 1] [1 1])
+          (test-numerico>= [[1] 1] [1 1])
+          (test-numerico>= [1 [1]] [1 1])
+          (test-numerico>= [:-inf 1] [1 1])
+          (not (test-numerico>= [:+inf 1] [1 1]))
+          (test-numerico>= [1 :+inf] [1 1])
+          (not (test-numerico>= [1 :-inf] [1 1]))
+          (not (test-numerico>= [1 1] [:-inf 1]))
+          (test-numerico>= [1 1] [:+inf 1])
+          (not (test-numerico>= [1 1] [1 :+inf]))
+          (test-numerico>= [1 1] [1 :-inf])]
+
+             ))
+
+(defn- test-nominal>=
+  "Indica si un test nominal es más general o de la misma categoría
+   que otro"
+  [test1 test2]
+  (or (= (set test1) (set test2))
+      (not (every? (set test2) test1))))
+
+(assert (test-nominal>= [:a :b] [:a]))
+(assert (not (test-nominal>= [:a] [:a :b])))
+
+;; Ejercicio 6
+(defn test-CL>=
+  "Indica si un test es más general o de la misma categoría que otro"
+  [t1 t2]
+  (cond (some test-ambivalente? [t1 t2]) (test-ambivalente>= t1 t2)
+        (every? test-numerico? [t1 t2]) (test-numerico>= t1 t2)
+        (every? test-nominal? [t1 t2]) (test-nominal>= t1 t2)
+        :else "Comparación no soportada"))
+
+(assert (test-CL>= [*] [*]))
+(assert (test-CL>= [:lluvioso] [:soleado]))
+(assert (test-CL>= [:lluvioso] []))
+(assert (not (test-CL>=  []   [:lluvioso])))
+(assert (test-CL>= [25 30] [26]))
+
+(assert (test-CL>=  [25 30] [21 25]))
+(assert (not (test-CL>= [26] [25 30])))
