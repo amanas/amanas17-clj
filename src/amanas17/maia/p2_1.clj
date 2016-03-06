@@ -8,33 +8,20 @@
 ;; :-inf
 ;; :+inf
 
-(defn- limite-numerico?
-  "Determina si el límite indicado en un test numérico es válido"
-  [l]
-  (if (coll? l)
-    (number? (first l))
-    (or (= :-inf l)
-        (= :+inf l)
-        (number? l))))
-
-(assert (->> [-1 0 1 :-inf :+inf [-1] [0] [1]]
-             (every? limite-numerico?)))
-
 (defn- test-ambivalente?
   "Determina si un test puede ser aplicado indistintamente
-   a un atributo numérico o nominal"
+  a un atributo numérico o nominal"
   [test]
-  (or (= [] test)
-      (= [*] test)))
+  (not (nil? (some #{[] [*]} [test]))))
 
 (assert (every? test-ambivalente? [[] [*]]))
 
 (defn- test-numerico?
   "Determina si un test es aplicable a un atributo numérico"
-  [test]
-  (and (coll? test)
-       (or (test-ambivalente? test)
-           (every? limite-numerico? test))))
+  [[v1 v2 :as test]]
+  (or (test-ambivalente? test)
+      (and ((some-fn :-inf :+inf number?) (if (coll? v1) (first v1) v1))
+           ((some-fn :-inf :+inf number? nil?) (if (coll? v2) (first v2) v2)))))
 
 (assert (every? test-numerico? [[] [*] [1] [1 2] [[1] 2] [[1] [2]] [1 [2]]]))
 
@@ -42,13 +29,15 @@
   "Determina si un test es aplicable a un atributo nominal"
   [test]
   (or (test-ambivalente? test)
-      (not (test-numerico? test))))
+      (and (not (some #{:-inf :+inf} test))
+           (every? keyword? test))))
 
 (assert (every? test-nominal? [[] [*] [:a] [:a :b]]))
 
+
 (defn- match-nature?
   "Determina si un test (o array de ellos) y un atributo (o array de ellos)
-   tienen la misma naturaleza (nominal o numérica)"
+  tienen la misma naturaleza (nominal o numérica)"
   ([[tests atributos]]
    (->> (interleave tests atributos)
         (partition 2)
@@ -59,18 +48,18 @@
        (and (test-numerico? test) (number? atributo))
        (and (test-nominal? test) (keyword? atributo)))))
 
-(assert (match-nature? [] 1))
-(assert (match-nature? [*] 1))
-(assert (match-nature? [1] 1))
-(assert (match-nature? [1 2] 1))
-(assert (match-nature? [[1]] 1))
-(assert (match-nature? [[1] 2] 1))
-(assert (match-nature? [1 [2]] 1))
-(assert (match-nature? [[1] [2]] 1))
-(assert (match-nature? [:a] :b))
-(assert (match-nature? [:a :b] :c))
-(assert (match-nature? [] :a))
-(assert (match-nature? [*] :a))
+(assert (and (match-nature? [] 1)
+             (match-nature? [*] 1)
+             (match-nature? [1] 1)
+             (match-nature? [1 2] 1)
+             (match-nature? [[1]] 1)
+             (match-nature? [[1] 2] 1)
+             (match-nature? [1 [2]] 1)
+             (match-nature? [[1] [2]] 1)
+             (match-nature? [:a] :b)
+             (match-nature? [:a :b] :c)
+             (match-nature? [] :a)
+             (match-nature? [*] :a)))
 
 (defn- match-ambivalente?
   "Determina si un atributo satisface un test ambivalente"
@@ -78,54 +67,102 @@
   (= [*] test))
 
 (defn- match-nominal?
-  "Determina si un atributo nominal satisface un test nominal o ambivalente"
+  "Determina si un atributo nominal satisface un test nominal"
   [test atributo]
-  (or (match-ambivalente? test atributo)
-      (not (nil? (some (set test) [atributo])))))
+  (not (nil? (some (set test) [atributo]))))
 
-(assert (match-nominal? [:a] :a))
-(assert (match-nominal? [:a :b] :a))
-(assert (not (match-nominal? [:a :b] :c)))
+(assert (and (match-nominal? [:a] :a)
+             (match-nominal? [:a :b] :a)
+             (not (match-nominal? [:a :b] :c))))
+
+(defn- lv<= [l v] (cond (= :-inf v) (= :-inf l)
+                        (= :+inf v) true
+                        (= :+inf l) (= :+inf v)
+                        (= :-inf l) true
+                        :else (<= l v)))
+(defn- lv>= [l v] (cond (= :-inf v) true
+                        (= :+inf v) (= :+inf l)
+                        (= :-inf l) (= :-inf v)
+                        (= :+inf l) true
+                        :else (>= l v)))
+(defn- lv= [l v] (= l v))
+(defn- lv< [l v] (and (lv<= l v) (not (= l v))))
+(defn- lv> [l v] (and (lv>= l v) (not (= l v))))
+
+(defn- normalize-numerico
+  "Los tests numéricos admiten demasiada variedad en su forma de
+  ser expresados.
+  Ésta función los encapsula en una estructura común consistente en
+  que puede adoptar cualquiera de estas formas:
+  - [a b]
+  - [[a] b]
+  - [a [b]]
+  - [[a] [b]]
+  siendo a y b números o :-inf, :+inf"
+  [[l1 l2 :as t]]
+  (cond (= t []) [[:+inf] [:-inf]]
+        (= t [*]) [[:-inf] [:+inf]]
+        (nil? l2) (normalize-numerico [l1 l1])
+        (every? coll? t) (cond (lv> (first l1) (first l2)) (normalize-numerico [])
+                               (lv= (first l1) (first l2)) [l1 l1]
+                               :else t)
+        (coll? l1) (cond (lv= (first l1) l2) [l1 l1]
+                         (lv> (first l1) l2) (normalize-numerico [])
+                         :else t)
+        (coll? l2) (cond (lv= l1 (first l2)) [l2 l2]
+                         (lv> l1 (first l2)) (normalize-numerico [])
+                         :else t)
+        (lv> l1 l2) (normalize-numerico [])
+        (lv= l1 l2) [[l1] [l2]]
+        :else t))
+
+; todo: normalizar mejor - normalizando intervalos imposibles como []
+
+(assert (and (= [[:+inf] [:-inf]] (normalize-numerico []))
+             (= [[:-inf] [:+inf]] (normalize-numerico [*]))
+             (= [:-inf 1] (normalize-numerico [:-inf 1]))
+             (= [[:+inf] [:-inf]] (normalize-numerico [1 :-inf]))
+             (= [1 :+inf] (normalize-numerico [1 :+inf]))
+             (= [[:+inf] [:-inf]] (normalize-numerico [:+inf 1]))
+             (= [[:-inf] 1] (normalize-numerico [[:-inf] 1]))
+             (= [[1] [1]] (normalize-numerico [1]))
+             (= [[1] [1]] (normalize-numerico [[1]]))
+             (= [[1] [1]] (normalize-numerico [1 [1]]))
+             (= [[1] [1]] (normalize-numerico [[1] 1]))
+             (= [1 2] (normalize-numerico [1 2]))
+             (= [1 [2]] (normalize-numerico [1 [2]]))
+             (= [[1] 2] (normalize-numerico [[1] 2]))
+             (= [[1] [2]] (normalize-numerico [[1] [2]]))
+             (= [[:+inf] [:-inf]] (normalize-numerico [2 1]))))
+
 
 (defn- match-numerico?
-  "Determina si un atributo numérico satisface un test numérico o ambivalente"
-  [test atributo]
-  (or (match-ambivalente? test atributo)
-      (and (= 1 (count test))
-           (= (first test) atributo))
-      (and (= 2 (count test))
-           (let [[a b] test
-                 left (cond (coll? a)   (partial <= (first a))
-                            (= :-inf a) (constantly true)
-                            (= :+inf a) (constantly false)
-                            :else       (partial < a))
-                 right (cond (coll? b)   (partial >= (first b))
-                             (= :-inf b) (constantly false)
-                             (= :+inf b) (constantly true)
-                             :else       (partial > b))]
-             (and (left atributo) (right atributo))))))
+  "Determina si un atributo numérico satisface un test numérico"
+  [test v]
+  (let [[l1 l2] (normalize-numerico test)]
+    (and (if (coll? l1) (lv<= (first l1) v) (lv< l1 v))
+         (if (coll? l2) (lv<= v (first l2)) (lv< v l2)))))
 
-(assert (not (match-numerico? [] 1)))
-(assert (match-numerico? [*] 1))
-(assert (match-numerico? [1] 1))
-(assert (match-numerico? [1 2] 1.5))
-(assert (match-numerico? [[1] 2] 1))
-(assert (match-numerico? [1 [2]] 2))
-(assert (match-numerico? [[1] [2]] 1))
-
+(assert (and (match-numerico? [1] 1)
+             (match-numerico? [1 2] 1.5)
+             (match-numerico? [[1] 2] 1)
+             (match-numerico? [1 [2]] 2)
+             (match-numerico? [[1] [2]] 1)
+             (match-numerico? [1 1] 1)))
 
 (defn- match?
   "Determina si un test (o array de ellos) y un atributo (o array de ellos)
-   son satisfechos"
+  son satisfechos"
   ([[tests atributos]]
    (->> (interleave tests atributos)
         (partition 2)
         (map (partial apply match?))
         (every? true?)))
   ([test atributo]
-   (cond (test-numerico? test) (match-numerico? test atributo)
-         (test-nominal? test) (match-nominal? test atributo)
-         :else (match-ambivalente? test atributo))))
+   (cond (test-ambivalente? test) (match-ambivalente? test atributo)
+         (test-numerico? test) (match-numerico? test atributo)
+         (test-nominal? test)  (match-nominal? test atributo)
+         :else false)))
 
 ;; Ejercicio 1
 (defn match-CL
@@ -136,10 +173,10 @@
        (match-nature? [tests atributos])
        (match? [tests atributos])))
 
-(assert (not (match-CL [[:soleado] [*] [10 40] [:si]]   [:soleado 30 40 :si])))
-(assert      (match-CL [[:soleado] [*] [10 [40]] [:si]] [:soleado 30 40 :si]))
-(assert (not (match-CL [[:soleado] [*] [10 40] [:si]]   [:soleado 30 25 :no])))
-(assert (not (match-CL [[:soleado] [*] [10 40] [:si]]   [30 :soleado 25 :no])))
+(assert (and (not (match-CL [[:soleado] [*] [10 40] [:si]]   [:soleado 30 40 :si]))
+             (match-CL [[:soleado] [*] [10 [40]] [:si]] [:soleado 30 40 :si])
+             (not (match-CL [[:soleado] [*] [10 40] [:si]]   [:soleado 30 25 :no]))
+             (not (match-CL [[:soleado] [*] [10 40] [:si]]   [30 :soleado 25 :no]))))
 
 (he-tardado 360 2.1)
 
@@ -181,8 +218,8 @@
 ;; Ejercicio 4
 (defn concepto-CL-mas-general
   "Devuelve el concepto CL más general posible dada la descripción de
-   atributos de un conjunto de datos.
-   Metadatos se entiende que es la cabecera de descripción de atributos"
+  atributos de un conjunto de datos.
+  Metadatos se entiende que es la cabecera de descripción de atributos"
   [metadatos]
   (repeat (dec (count metadatos)) [*]))
 
@@ -194,8 +231,8 @@
 ;; Ejercicio 5
 (defn concepto-CL-mas-especifico
   "Devuelve el concepto CL más específico posible dada la descripción de
-   atributos de un conjunto de datos.
-   Metadatos se entiende que es la cabecera de descripción de atributos"
+  atributos de un conjunto de datos.
+  Metadatos se entiende que es la cabecera de descripción de atributos"
   [metadatos]
   (repeat (dec (count metadatos)) []))
 
@@ -207,104 +244,84 @@
 
 (defn- test-ambivalente>=
   "Indica si un test ambivalente es más general o de la misma categoría
-   que otro"
+  que otro"
   [test1 test2]
   (or (= [*] test1)
       (= [] test2)))
 
-(assert (test-ambivalente>= [*] [*]))
-(assert (test-ambivalente>= [*] []))
-(assert (test-ambivalente>= [] []))
-(assert (not (test-ambivalente>= [] [*])))
+(assert (and (test-ambivalente>= [*] [*])
+             (test-ambivalente>= [*] [])
+             (test-ambivalente>= [] [])
+             (not (test-ambivalente>= [] [*]))))
 
-(defn- limite=
-  "Indica si un límite de un intervalo es igual.
-   Pueden ser cerrados '[number]' o abiertos 'number'"
-  [left right]
-  (cond (or (every? coll? [left right])
-            (every? number? [left right])
-            (some #{:-inf :+inf} [left right])) (= left right)
-        (number? left) (< left (first right))
-        :else (< (first left) right)))
-
-(defn- limite<
-  "Indica si un límite de un intervalo es anterior a otro.
-   Pueden ser cerrados '[number]' o abiertos 'number'"
-  [left right]
-  (cond (= :-inf left) true
-        (= :+inf left) false
-        (= :-inf right) false
-        (= :+inf right) true
-        (every? coll? [left right]) (< (first left) (first right))
-        (every? number? [left right]) (< left right)
-        (number? left) (< left (first right))
-        :else (<= (first left) right)))
-
-(defn- limite<=
-  "Indica si un límite de un intervalo es anterior o igual a otro.
-   Pueden ser cerrados '[number]' o abiertos 'number'"
-  [left right]
-  (or (limite= left right)
-      (limite< left right)))
-
-(defn- test-numerico>=
+(defn- test-numerico>= [t1 t2]
   "Indica si un test numérico es más general o de la misma categoría
-   que otro"
-  [[v11 v12 :as test1] [v21 v22 :as test2]]
-  (cond (nil? v12) (test-numerico>= [v11 v11] [v21 v22])
-        (nil? v22) (test-numerico>= [v11 v12] [v21 v21])
-        :else (or (and (limite<= v11 v21)
-                       (limite<= v22 v12))
-                  (and (limite<= v21 v11)
-                       (not (limite<= v12 v22))))))
+  que otro"
+  (let [[l1 r1] (normalize-numerico t1)
+        [l2 r2] (normalize-numerico t2)]
+    (prn [l1 r1] [l1 r2])
+    (or (= [l1 r1] [l2 r2])
+        (not (cond (and (coll? l1) (coll? l2)) (lv>= (first l1) (first l2))
+                   (and (coll? l1) (not (coll? l2))) (lv>= (first l1) l2)
+                   (and (not (coll? l1)) (coll? l2)) (lv> l1 (first l2))
+                   (and (not (coll? l1)) (not (coll? l2))) (lv>= l1 l2)))
+        (not (cond (and (coll? r1) (coll? r2)) (lv<= (first r1) (first r2))
+                   (and (coll? r1) (not (coll? r2))) (lv< (first r1) r2)
+                   (and (not (coll? r1)) (coll? r2)) (lv<= r1 (first r2))
+                   (and (not (coll? r1)) (not (coll? r2))) (lv<= r1 r2))))))
 
-(assert (and
-         [(test-numerico>= [1 2] [3 4])
-          (test-numerico>= [1 4] [2 3])
-          (test-numerico>= [1 3] [2 4])
-          (test-numerico>= [1 4] [2 3])
-          (not (test-numerico>= [2 3] [1 4]))
-          (test-numerico>= [1] [1])
-          (test-numerico>= [1] [1 1])
-          (test-numerico>= [1 1] [1])
-          (test-numerico>= [1 1] [1 1])
-          (test-numerico>= [[1] 1] [1 1])
-          (test-numerico>= [1 [1]] [1 1])
-          (test-numerico>= [:-inf 1] [1 1])
-          (not (test-numerico>= [:+inf 1] [1 1]))
-          (test-numerico>= [1 :+inf] [1 1])
-          (not (test-numerico>= [1 :-inf] [1 1]))
-          (not (test-numerico>= [1 1] [:-inf 1]))
-          (test-numerico>= [1 1] [:+inf 1])
-          (not (test-numerico>= [1 1] [1 :+inf]))
-          (test-numerico>= [1 1] [1 :-inf])]
 
-             ))
 
-(defn- test-nominal>=
-  "Indica si un test nominal es más general o de la misma categoría
-   que otro"
-  [test1 test2]
-  (or (= (set test1) (set test2))
-      (not (every? (set test2) test1))))
+(test-numerico>= [1 2] [3 4])
+(test-numerico>= [1 4] [2 3])
+(test-numerico>= [1 3] [2 4])
+(not (test-numerico>= [2 3] [1 4]))
+(test-numerico>= [1 2] [1 2])
+(test-numerico>= [1] [1])
+(test-numerico>= [1] [1 1])
+(test-numerico>= [1 1] [1])
+(test-numerico>= [1 1] [1 1])
+(test-numerico>= [[1] 1] [1 1])
+(test-numerico>= [1 [1]] [1 1])
+(test-numerico>= [1 1] [[1] 1])
+(test-numerico>= [1 1] [1 [1]])
+(not (test-numerico>= [1 2] [[1] 2]))
+(not (test-numerico>= [1 2] [1 [2]]))
+(test-numerico>= [:-inf 1] [1 1])
+(not (test-numerico>= [:+inf 1] [1 1]))
+(test-numerico>= [1 :+inf] [1 1])
+(not (test-numerico>= [1 :-inf] [1 1]))
 
-(assert (test-nominal>= [:a :b] [:a]))
-(assert (not (test-nominal>= [:a] [:a :b])))
+(defn- test-numerico= [t1 t2]
+  (and (test-numerico<= t1 t2)
+       (test-numerico<= t2 t1)))
 
-;; Ejercicio 6
-(defn test-CL>=
-  "Indica si un test es más general o de la misma categoría que otro"
-  [t1 t2]
-  (cond (some test-ambivalente? [t1 t2]) (test-ambivalente>= t1 t2)
-        (every? test-numerico? [t1 t2]) (test-numerico>= t1 t2)
-        (every? test-nominal? [t1 t2]) (test-nominal>= t1 t2)
-        :else "Comparación no soportada"))
+;; (defn- test-nominal>=
+;;   "Indica si un test nominal es más general o de la misma categoría
+;;   que otro"
+;;   [test1 test2]
+;;   (or (= (set test1) (set test2))
+;;       (not (every? (set test2) test1))))
 
-(assert (test-CL>= [*] [*]))
-(assert (test-CL>= [:lluvioso] [:soleado]))
-(assert (test-CL>= [:lluvioso] []))
-(assert (not (test-CL>=  []   [:lluvioso])))
-(assert (test-CL>= [25 30] [26]))
+;; (assert (test-nominal>= [:a :b] [:a]))
+;; (assert (not (test-nominal>= [:a] [:a :b])))
 
-(assert (test-CL>=  [25 30] [21 25]))
-(assert (not (test-CL>= [26] [25 30])))
+;; ;; Ejercicio 6
+;; (defn test-CL>=
+;;   "Indica si un test es más general o de la misma categoría que otro"
+;;   [t1 t2]
+;;   (cond (some test-ambivalente? [t1 t2]) (test-ambivalente>= t1 t2)
+;;         (every? test-numerico? [t1 t2]) (test-numerico>= t1 t2)
+;;         (every? test-nominal? [t1 t2]) (test-nominal>= t1 t2)
+;;         :else "Comparación no soportada"))
+
+;; (assert (test-CL>= [*] [*]))
+;; (assert (test-CL>= [:lluvioso] [:soleado]))
+;; (assert (test-CL>= [:lluvioso] []))
+;; (assert (not (test-CL>=  []   [:lluvioso])))
+;; (assert (test-CL>= [25 30] [26]))
+
+;; (assert (test-CL>=  [25 30] [21 25]))
+;; (assert (not (test-CL>= [26] [25 30])))
+
+
