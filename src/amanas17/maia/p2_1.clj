@@ -283,9 +283,6 @@
              (test-numerico>= [1 :+inf] [1 1])
              (not (test-numerico>= [1 :-inf] [1 1]))))
 
-;; (defn- test-numerico= [t1 t2] (every? test-numerico>= [[t1 t2] [t2 t1]]))
-;; (defn- test-numerico<= [t1 t2] (or (test-numerico= t1 t2) (test-numerico>= t2 t1)))
-
 (defn- test-nominal>=
   "Indica si un test nominal es más general o de la misma categoría
   que otro"
@@ -302,11 +299,11 @@
  ;; Ejercicio 6
 (defn test-CL>=
   "Indica si un test es más general o de la misma categoría que otro"
-  [t1 t2]
-  (cond (some test-ambivalente? [t1 t2]) (test-ambivalente>= t1 t2)
-        (every? test-numerico? [t1 t2]) (test-numerico>= t1 t2)
-        (every? test-nominal? [t1 t2]) (test-nominal>= t1 t2)
-        :else "Comparación no soportada"))
+  ([[t1 t2]] (test-CL>= t1 t2))
+  ([t1 t2] (cond (some test-ambivalente? [t1 t2]) (test-ambivalente>= t1 t2)
+                 (every? test-numerico? [t1 t2]) (test-numerico>= t1 t2)
+                 (every? test-nominal? [t1 t2]) (test-nominal>= t1 t2)
+                 :else "Comparación no soportada")))
 
 (assert (and (test-CL>= [*] [*])
              (test-CL>= [:lluvioso] [:soleado])
@@ -315,3 +312,36 @@
              (test-CL>= [25 30] [26])
              (test-CL>=  [25 30] [21 25])
              (not (test-CL>= [26] [25 30]))))
+
+(he-tardado 60 2.6)
+
+;; Ejercicio 7
+(defn concepto-CL>=
+  "Indica si todos los tests de un concepto son tienen mayor o igual
+  generalidad que los de otro"
+  [c1 c2]
+  (every? test-CL>= (partition 2 (interleave c1 c2))))
+
+(assert (and (concepto-CL>= [[:lluvioso] [2 10]] [[:soleado] [10 20]])
+             (concepto-CL>= [[:lluvioso] [2 35]] [[:soleado] [23]])
+             (not (concepto-CL>= [[:soleado][23]] [[:lluvioso][2 35]]))))
+
+(he-tardado 5 2.7)
+
+(defn- concepto-CL= [c1 c2] (and (concepto-CL>= c1 c2) (concepto-CL>= c2 c1)))
+(defn- concepto-CL<= [c1 c2] (and (concepto-CL>= c1 c2) (concepto-CL>= c2 c1)))
+
+;; Ejercicio 8
+(defn cmp-concepto-CL
+  "Compara dos conceptos. Devuelve:
+    1 si c1 es estrictamente más general que c2
+    0 si c1 es estrictamente de la misma categoría que c2
+   -1 si c1 es estrictamente más específico que c2"
+  [c1 c2]
+  (cond (and (concepto-CL>= c1 c2) (concepto-CL>= c2 c1))        0
+        (and (concepto-CL>= c1 c2) (not (concepto-CL>= c2 c1)))  1
+        (and (not (concepto-CL>= c1 c2)) (concepto-CL>= c2 c1)) -1))
+
+(assert (and (=  1 (cmp-concepto-CL [[:lluvioso] [2 35]] [[:soleado]  [23]]))
+             (=  0 (cmp-concepto-CL [[:lluvioso] [2 10]] [[:soleado]  [10 20]]))
+             (= -1 (cmp-concepto-CL [[:soleado]  [23]]   [[:lluvioso] [2 35]]))))
