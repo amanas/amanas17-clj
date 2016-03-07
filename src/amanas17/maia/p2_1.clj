@@ -23,7 +23,13 @@
       (and ((some-fn :-inf :+inf number?) (if (coll? v1) (first v1) v1))
            ((some-fn :-inf :+inf number? nil?) (if (coll? v2) (first v2) v2)))))
 
-(assert (every? test-numerico? [[] [*] [1] [1 2] [[1] 2] [[1] [2]] [1 [2]]]))
+(assert (and (test-numerico? [])
+             (test-numerico? [*])
+             (test-numerico? [1])
+             (test-numerico? [1 2])
+             (test-numerico? [[1] 2])
+             (test-numerico? [[1] [2]])
+             (test-numerico? [1 [2]])))
 
 (defn- test-nominal?
   "Determina si un test es aplicable a un atributo nominal"
@@ -32,7 +38,10 @@
       (and (not (some #{:-inf :+inf} test))
            (every? keyword? test))))
 
-(assert (every? test-nominal? [[] [*] [:a] [:a :b]]))
+(assert (and (test-nominal? [])
+             (test-nominal? [*])
+             (test-nominal? [:a])
+             (test-nominal? [:a :b])))
 
 (defn- match-nature?
   "Determina si un test (o array de ellos) y un atributo (o array de ellos)
@@ -78,7 +87,7 @@
 (defn- lv= [l v] (= l v))
 (defn- lv< [l v] (cond (every? coll? [l v]) (lv< (first l) (first v))
                        (coll? l) (lv< (first l) v)
-                       (coll? v) (lv< (first v) l)
+                       (coll? v) (lv< l (first v))
                        (= :-inf l) true
                        (= :+inf v) true
                        (= :-inf v) false
@@ -245,14 +254,14 @@
              (test-ambivalente>= [] [])
              (not (test-ambivalente>= [] [*]))))
 
-(defn test-numerico>= [t1 t2]
+(defn- test-numerico>= [t1 t2]
   "Indica si un test numérico es más general o de la misma categoría
   que otro"
   (let [[l1 r1] (normalize-numerico t1)
         [l2 r2] (normalize-numerico t2)
         t1-in-t2 (and (lv<= l2 l1) (lv<= r1 r2))
         t2-in-t1 (and (lv<= l1 l2) (lv<= r2 r1))]
-    (or (not t1-in-t2) t2-in-t1)))
+    (or t2-in-t1 (not t1-in-t2))))
 
 (assert (and (test-numerico>= [1 2] [3 4])
              (test-numerico>= [1 4] [2 3])
@@ -274,33 +283,35 @@
              (test-numerico>= [1 :+inf] [1 1])
              (not (test-numerico>= [1 :-inf] [1 1]))))
 
-(defn- test-numerico= [t1 t2]
-  (every? test-numerico>= [[t1 t2] [t2 t1]]))
+;; (defn- test-numerico= [t1 t2] (every? test-numerico>= [[t1 t2] [t2 t1]]))
+;; (defn- test-numerico<= [t1 t2] (or (test-numerico= t1 t2) (test-numerico>= t2 t1)))
 
-;; (defn- test-nominal>=
-;;   "Indica si un test nominal es más general o de la misma categoría
-;;   que otro"
-;;   [test1 test2]
-;;   (or (= (set test1) (set test2))
-;;       (not (every? (set test2) test1))))
+(defn- test-nominal>=
+  "Indica si un test nominal es más general o de la misma categoría
+  que otro"
+  [t1 t2]
+  (or (every? (set t1) t2)
+      (not (every? (set t2) t1))))
 
-;; (assert (test-nominal>= [:a :b] [:a]))
-;; (assert (not (test-nominal>= [:a] [:a :b])))
+(assert (and (test-nominal>= [:a :b] [:a])
+             (test-nominal>= [:a :b] [:a :c])
+             (not (test-nominal>= [:a] [:a :b]))
+             (not (test-nominal>= [] [:a]))
+             (test-nominal>= [:a] [])))
 
-;; ;; Ejercicio 6
-;; (defn test-CL>=
-;;   "Indica si un test es más general o de la misma categoría que otro"
-;;   [t1 t2]
-;;   (cond (some test-ambivalente? [t1 t2]) (test-ambivalente>= t1 t2)
-;;         (every? test-numerico? [t1 t2]) (test-numerico>= t1 t2)
-;;         (every? test-nominal? [t1 t2]) (test-nominal>= t1 t2)
-;;         :else "Comparación no soportada"))
+ ;; Ejercicio 6
+(defn test-CL>=
+  "Indica si un test es más general o de la misma categoría que otro"
+  [t1 t2]
+  (cond (some test-ambivalente? [t1 t2]) (test-ambivalente>= t1 t2)
+        (every? test-numerico? [t1 t2]) (test-numerico>= t1 t2)
+        (every? test-nominal? [t1 t2]) (test-nominal>= t1 t2)
+        :else "Comparación no soportada"))
 
-;; (assert (test-CL>= [*] [*]))
-;; (assert (test-CL>= [:lluvioso] [:soleado]))
-;; (assert (test-CL>= [:lluvioso] []))
-;; (assert (not (test-CL>=  []   [:lluvioso])))
-;; (assert (test-CL>= [25 30] [26]))
-
-;; (assert (test-CL>=  [25 30] [21 25]))
-;; (assert (not (test-CL>= [26] [25 30])))
+(assert (and (test-CL>= [*] [*])
+             (test-CL>= [:lluvioso] [:soleado])
+             (test-CL>= [:lluvioso] [])
+             (not (test-CL>=  []   [:lluvioso]))
+             (test-CL>= [25 30] [26])
+             (test-CL>=  [25 30] [21 25])
+             (not (test-CL>= [26] [25 30]))))
