@@ -77,7 +77,8 @@
 (defn- match-nominal?
   "Determina si un atributo nominal satisface un test nominal"
   [test atributo]
-  (not (nil? (some (set test) [atributo]))))
+  (or (match-ambivalente? test atributo)
+      (not (nil? (some (set test) [atributo])))))
 
 (assert (and (match-nominal? [:a] :a)
              (match-nominal? [:a :b] :a)
@@ -151,9 +152,10 @@
 (defn- match-numerico?
   "Determina si un atributo numérico satisface un test numérico"
   [test v]
-  (let [[l1 l2] (normalize-numerico test)]
-    (and (if (coll? l1) (lv<= (first l1) v) (lv< l1 v))
-         (if (coll? l2) (lv<= v (first l2)) (lv< v l2)))))
+  (or (match-ambivalente? test v)
+      (let [[l1 l2] (normalize-numerico test)]
+        (and (if (coll? l1) (lv<= (first l1) v) (lv< l1 v))
+             (if (coll? l2) (lv<= v (first l2)) (lv< v l2))))))
 
 (assert (and (match-numerico? [1] 1)
              (match-numerico? [1 2] 1.5)
@@ -358,4 +360,57 @@
              (=  0 (cmp-concepto-CL [[:lluvioso] [2 10]] [[:soleado]  [10 20]]))
              (= -1 (cmp-concepto-CL [[:soleado]  [23]]   [[:lluvioso] [2 35]]))))
 
+(defn especializaciones-atributo-nominal
+  "Devuelva una lista de todos los conceptos CL que sean especialización inmediata
+  de concepto-CL en el atributo referenciado mediante indice-atributo"
+  [concepto-CL indice-atributo metadatos]
+  (let [test (nth concepto-CL indice-atributo)
+        test (if (= [*] test) (second (nth metadatos indice-atributo)) test)
+        especs (map (fn [v] (remove #{v} test)) test)
+        especs (if (empty? especs) [[]] especs)]
+    (map (fn [espec] (concat (take indice-atributo concepto-CL)
+                            [espec]
+                            (drop (inc indice-atributo) concepto-CL)))
+         especs)))
 
+(especializaciones-atributo-nominal [[*]] 0 [[:_ [:a :b]]])
+
+(especializaciones-atributo-nominal [[*][*][20][:si]] 0 (first ejemplos))
+
+;; creo que el ejemplo del material de estudio está mal
+(assert (= [[[:soleado :lluvioso :niebla :diluvia][*][20][:si]]
+            [[:nublado :lluvioso :niebla :diluvia][*][20][:si]]
+            [[:nublado :soleado :niebla :diluvia][*][20][:si]]
+            [[:nublado :soleado :lluvioso :diluvia][*][20][:si]]
+            [[:nublado :soleado :lluvioso :niebla][*][20][:si]]]
+           (especializaciones-atributo-nominal [[*][*][20][:si]] 0 (first ejemplos))))
+(assert (= [[[][*][20][:si]]]
+           (especializaciones-atributo-nominal [[:soleado][*][20][:si]] 0 [first ejemplos])))
+(assert (= [[[][*][20][:si]]]
+           (especializaciones-atributo-nominal [[][*][20][:si]] 0 [first ejemplos])))
+
+
+(defn generalizaciones-atributo-nominal
+  "Devuelva una lista de todos los conceptos CL que sean generalización inmediata
+  de concepto-CL en el atributo referenciado mediante indice-atributo"
+  [concepto-CL indice-atributo metadatos]
+  (let [test (nth concepto-CL indice-atributo)
+        attribute-values (second (nth metadatos indice-atributo))
+        remaining-values (remove (partial match-nominal? test) attribute-values)
+        geners (map (fn [v] (concat test [v])) remaining-values)
+        geners (if (empty? geners) [[*]] geners)]
+    (map (fn [gener] (concat (take indice-atributo concepto-CL)
+                             [gener]
+                             (drop (inc indice-atributo) concepto-CL)))
+         geners)))
+
+(assert (= [[[:soleado][*][20][:fuerte]]
+            [[:soleado][*][20][:brisa]]
+            [[:soleado][*][20][:no]]]
+           (generalizaciones-atributo-nominal [[:soleado][*][20][]] 3 (first ejemplos))))
+(assert (= [[[:soleado][*][20][:si :fuerte]]
+            [[:soleado][*][20] [:si :brisa]]
+            [[:soleado][*][20] [:si :no]]]
+           (generalizaciones-atributo-nominal [[:soleado][*][20][:si]] 3 (first ejemplos))))
+(assert (= [[[:soleado][*][20][*]]]
+           (generalizaciones-atributo-nominal [[:soleado][*][20][*]] 3 (first ejemplos))))
