@@ -83,46 +83,58 @@
              (match-nominal? [:a :b] :a)
              (not (match-nominal? [:a :b] :c))))
 
-; defino la aritmética de límites de intervalos
-(defn- lv= [l v] (= l v))
-(defn- lv< [l v] (cond (every? coll? [l v]) (lv< (first l) (first v))
-                       (coll? l) (lv< (first l) v)
-                       (coll? v) (lv< l (first v))
-                       (= :-inf l) true
-                       (= :+inf v) true
-                       (= :-inf v) false
-                       (= :+inf l) false
-                       :else (< l v)))
-(defn- lv<= [l v] (or (lv= l v) (lv< l v)))
-(defn- lv> [l v] (not (lv<= l v)))
-(defn- lv>= [l v] (or (lv= l v) (lv> l v)))
+;; Defino funciones que nos permiten comparar límites de intervalos
+;; normalizados
+(defn- lv<= [l v] (cond (some #{:-inf [:-inf]} [l]) true
+                        (some #{:+inf [:+inf]} [l]) false
+                        (some #{:-inf [:-inf]} [v]) false
+                        (some #{:+inf [:+inf]} [v]) true
+                        (every? number? [l v])      (<= l v)
+                        (every? coll? [l v])        (lv<= (first l) (first v))
+                        (coll? l)                   (or (= :-inf (first l)) (<= (first l) v))
+                        (coll? v)                   (or (= :+inf (first v)) (< l (first v)))
+                        :else                       "Not possible"))
+(defn- lv=  [l v] (and (lv<= l v) (lv<= v l)))
+(defn- lv<  [l v] (and (lv<= l v) (not (lv= l v))))
+(defn- lv>  [l v] (not (lv<= l v)))
+(defn- lv>= [l v] (not (lv<  l v)))
+
+(defn- weird?
+  "Indica si el test es 'extraño', es decir, con extremos validos pero
+  sin valores posibles en su interior. Es decir, casos de este tipo:
+  - [[a] a]
+  - [a [a]]
+  siendo a un valor numérico, :-inf o :+inf"
+  [l1 l2]
+  (or (and (coll? l1) (not (coll? l2)) (lv= (first l1) l2))
+      (and (not (coll? l1)) (coll? l2) (lv= l1 (first l2))))  )
 
 (defn- normalize-numerico
   "Los tests numéricos admiten demasiada variedad en su forma de
   ser expresados.
-  Ésta función los encapsula en una estructura común consistente en
-  que puede adoptar cualquiera de estas formas:
+  Ésta función los encapsula en una estructura común que puede adoptar
+  cualquiera de estas formas:
   - [a b]
   - [[a] b]
   - [a [b]]
   - [[a] [b]]
   siendo a y b números o :-inf, :+inf"
   [[l1 l2 :as t]]
-  (cond (= t [])         [[:+inf] [:-inf]]
-        (= t [*])        [[:-inf] [:+inf]]
-        (nil? l2)        (normalize-numerico [l1 l1])
-        (every? coll? t) (if (lv> (first l1) (first l2)) (normalize-numerico []) t)
-        (coll? l1)       (if (lv>= (first l1) l2) (normalize-numerico []) t)
-        (coll? l2)       (if (lv>= l1 (first l2)) (normalize-numerico []) t)
-        (lv> l1 l2)      (normalize-numerico [])
-        (lv= l1 l2)      [[l1] [l2]]
-        :else            t))
+  (cond (= t [])       [[:+inf] [:-inf]]
+        (= t [*])      [[:-inf] [:+inf]]
+        (nil? l2)      (normalize-numerico [l1 l1])
+        (= :-inf l1)   (normalize-numerico [[:-inf] l2])
+        (= :+inf l2)   (normalize-numerico [l1 [:+inf]])
+        (lv> l1 l2)    (normalize-numerico [])
+        (lv= l1 l2)    (if (every? coll? [l1 l2]) t [[l1] [l2]])
+        (weird? l1 l2) (normalize-numerico [])
+        :else          t))
 
 (assert (and (= [[:+inf] [:-inf]] (normalize-numerico []))
              (= [[:-inf] [:+inf]] (normalize-numerico [*]))
-             (= [:-inf 1] (normalize-numerico [:-inf 1]))
+             (= [[:-inf] 1] (normalize-numerico [:-inf 1]))
              (= [[:+inf] [:-inf]] (normalize-numerico [1 :-inf]))
-             (= [1 :+inf] (normalize-numerico [1 :+inf]))
+             (= [1 [:+inf]] (normalize-numerico [1 :+inf]))
              (= [[:+inf] [:-inf]] (normalize-numerico [:+inf 1]))
              (= [[:-inf] 1] (normalize-numerico [[:-inf] 1]))
              (= [[1] [1]] (normalize-numerico [1]))
@@ -272,11 +284,11 @@
              (test-numerico>= [1] [1 1])
              (test-numerico>= [1 1] [1])
              (test-numerico>= [1 1] [1 1])
-             (not(test-numerico>= [[1] 1] [1 1]))
+             (not (test-numerico>= [[1] 1] [1 1]))
              (not (test-numerico>= [1 [1]] [1 1]))
              (test-numerico>= [1 1] [[1] 1])
              (test-numerico>= [1 1] [1 [1]])
-             (test-numerico>= [1 2] [[1] 2])
+             (not (test-numerico>= [1 2] [[1] 2]))
              (test-numerico>= [1 2] [1 [2]])
              (test-numerico>= [:-inf 1] [1 1])
              (not (test-numerico>= [:+inf 1] [1 1]))
@@ -296,7 +308,7 @@
              (not (test-nominal>= [] [:a]))
              (test-nominal>= [:a] [])))
 
- ;; Ejercicio 6
+;; Ejercicio 6
 (defn test-CL>=
   "Indica si un test es más general o de la misma categoría que otro"
   ([[t1 t2]] (test-CL>= t1 t2))
@@ -334,9 +346,9 @@
 ;; Ejercicio 8
 (defn cmp-concepto-CL
   "Compara dos conceptos. Devuelve:
-    1 si c1 es estrictamente más general que c2
-    0 si c1 es estrictamente de la misma categoría que c2
-   -1 si c1 es estrictamente más específico que c2"
+  1 si c1 es estrictamente más general que c2
+  0 si c1 es estrictamente de la misma categoría que c2
+  -1 si c1 es estrictamente más específico que c2"
   [c1 c2]
   (cond (and (concepto-CL>= c1 c2) (concepto-CL>= c2 c1))        0
         (and (concepto-CL>= c1 c2) (not (concepto-CL>= c2 c1)))  1
@@ -345,3 +357,5 @@
 (assert (and (=  1 (cmp-concepto-CL [[:lluvioso] [2 35]] [[:soleado]  [23]]))
              (=  0 (cmp-concepto-CL [[:lluvioso] [2 10]] [[:soleado]  [10 20]]))
              (= -1 (cmp-concepto-CL [[:soleado]  [23]]   [[:lluvioso] [2 35]]))))
+
+
