@@ -85,16 +85,14 @@
              (not (match-nominal? [:a :b] :c))))
 
 ;; Defino funciones que nos permiten comparar límites de intervalos
-;; normalizados
-(defn- lv<= [l v] (cond (some #{:-inf [:-inf]} [l]) true
-                        (some #{:+inf [:+inf]} [l]) false
-                        (some #{:-inf [:-inf]} [v]) false
-                        (some #{:+inf [:+inf]} [v]) true
-                        (every? number? [l v])      (<= l v)
-                        (every? coll? [l v])        (lv<= (first l) (first v))
-                        (coll? l)                   (or (= :-inf (first l)) (<= (first l) v))
-                        (coll? v)                   (or (= :+inf (first v)) (< l (first v)))
-                        :else                       "Not possible"))
+;; normalizados con valores
+(defn- lv<= [l v]
+  (cond (= :-inf l)            true
+        (= :+inf v)            true
+        (every? coll? [l v])  (lv<=  l (first v))
+        (coll? l)             (lv<= (first l) v)
+        (every? number? [l v])(<= l v)
+        :else                 false))
 (defn- lv=  [l v] (and (lv<= l v) (lv<= v l)))
 (defn- lv<  [l v] (and (lv<= l v) (not (lv= l v))))
 (defn- lv>  [l v] (not (lv<= l v)))
@@ -115,47 +113,53 @@
   ser expresados.
   Ésta función los encapsula en una estructura común que puede adoptar
   cualquiera de estas formas:
+  - []
+  - [*]
   - [a b]
   - [[a] b]
   - [a [b]]
   - [[a] [b]]
   siendo a y b números o :-inf, :+inf"
   [[l1 l2 :as t]]
-  (cond (= t [])       [[:+inf] [:-inf]]
-        (= t [*])      [[:-inf] [:+inf]]
-        (nil? l2)      (normalize-numerico [l1 l1])
-        (= :-inf l1)   (normalize-numerico [[:-inf] l2])
-        (= :+inf l2)   (normalize-numerico [l1 [:+inf]])
-        (lv> l1 l2)    (normalize-numerico [])
-        (lv= l1 l2)    (if (every? coll? [l1 l2]) t [[l1] [l2]])
-        (weird? l1 l2) (normalize-numerico [])
-        :else          t))
+  (cond (= t [])            []
+        (= t [*])           [*]
+        (= t [:-inf :+inf]) [*]
+        (= [:-inf] l1)      (normalize-numerico [:-inf l2])
+        (= [:+inf] l2)      (normalize-numerico [l1 :+inf])
+        (nil? l2)           (normalize-numerico [l1 l1])
+        (weird? l1 l2)      []
+        (lv= l1 l2)         (if (every? coll? [l1 l2]) [(first l1) (first l2)] t)
+        (coll? l2)          (if (lv< l1 (first l2)) t [])
+        (lv> l1 l2)         []
+         :else               t))
 
-(assert (and (= [[:+inf] [:-inf]] (normalize-numerico []))
-             (= [[:-inf] [:+inf]] (normalize-numerico [*]))
-             (= [[:-inf] 1] (normalize-numerico [:-inf 1]))
-             (= [[:+inf] [:-inf]] (normalize-numerico [1 :-inf]))
-             (= [1 [:+inf]] (normalize-numerico [1 :+inf]))
-             (= [[:+inf] [:-inf]] (normalize-numerico [:+inf 1]))
-             (= [[:-inf] 1] (normalize-numerico [[:-inf] 1]))
-             (= [[1] [1]] (normalize-numerico [1]))
-             (= [[1] [1]] (normalize-numerico [[1]]))
-             (= [[1] [1]] (normalize-numerico [1 1]))
-             (= [[:+inf] [:-inf]] (normalize-numerico [1 [1]]))
-             (= [[:+inf] [:-inf]] (normalize-numerico [[1] 1]))
-             (= [1 2] (normalize-numerico [1 2]))
-             (= [1 [2]] (normalize-numerico [1 [2]]))
-             (= [[1] 2] (normalize-numerico [[1] 2]))
-             (= [[1] [2]] (normalize-numerico [[1] [2]]))
-             (= [[:+inf] [:-inf]] (normalize-numerico [2 1]))))
+(assert (and
+         (= [] (normalize-numerico []))
+         (= [*] (normalize-numerico [*]))
+         (= [:-inf 1] (normalize-numerico [:-inf 1]))
+         (= [] (normalize-numerico [1 :-inf]))
+         (= [1 :+inf] (normalize-numerico [1 :+inf]))
+         (= [] (normalize-numerico [:+inf 1]))
+         (= [:-inf 1] (normalize-numerico [[:-inf] 1]))
+         (= [1 1] (normalize-numerico [1]))
+         (= [1 1] (normalize-numerico [[1]]))
+         (= [1 1] (normalize-numerico [1 1]))
+         (= [] (normalize-numerico [1 [1]]))
+         (= [] (normalize-numerico [[1] 1]))
+         (= [1 2] (normalize-numerico [1 2]))
+         (= [1 [2]] (normalize-numerico [1 [2]]))
+         (= [[1] 2] (normalize-numerico [[1] 2]))
+         (= [[1] [2]] (normalize-numerico [[1] [2]])))
+        (= [] (normalize-numerico [2 1])))
 
 (defn- match-numerico?
   "Determina si un atributo numérico satisface un test numérico"
   [test v]
-  (or (match-ambivalente? test v)
-      (let [[l1 l2] (normalize-numerico test)]
-        (and (if (coll? l1) (lv<= (first l1) v) (lv< l1 v))
-             (if (coll? l2) (lv<= v (first l2)) (lv< v l2))))))
+  (let [[l1 l2] (normalize-numerico test)]
+    (or (match-ambivalente? test v)
+        (cond (= l1 l2) (= l1 v)
+              :else     (and (if (coll? l1) (lv<= (first l1) v) (lv< l1 v))
+                             (if (coll? l2) (lv<= v (first l2)) (lv< v l2)))))))
 
 (assert (and (match-numerico? [1] 1)
              (match-numerico? [1 2] 1.5)
@@ -271,10 +275,14 @@
 (defn- test-numerico>= [t1 t2]
   "Indica si un test numérico es más general o de la misma categoría
   que otro"
-  (let [[l1 r1] (normalize-numerico t1)
-        [l2 r2] (normalize-numerico t2)
-        t1-in-t2 (and (lv<= l2 l1) (lv<= r1 r2))
-        t2-in-t1 (and (lv<= l1 l2) (lv<= r2 r1))]
+  (let [[l1 r1 :as t1] (normalize-numerico t1)
+        [l2 r2 :as t2] (normalize-numerico t2)
+        t1-in-t2 (or (= t1 [])
+                     (= t2 [*])
+                     (and (lv<= l2 l1) (lv<= r1 r2)))
+        t2-in-t1 (or (= t2 [])
+                     (= t1 [*])
+                     (and (lv<= l1 l2) (lv<= r2 r1)))]
     (or t2-in-t1 (not t1-in-t2))))
 
 (assert (and (test-numerico>= [1 2] [3 4])
@@ -360,6 +368,7 @@
              (=  0 (cmp-concepto-CL [[:lluvioso] [2 10]] [[:soleado]  [10 20]]))
              (= -1 (cmp-concepto-CL [[:soleado]  [23]]   [[:lluvioso] [2 35]]))))
 
+;; Ejercicio 9
 (defn especializaciones-atributo-nominal
   "Devuelva una lista de todos los conceptos CL que sean especialización inmediata
   de concepto-CL en el atributo referenciado mediante indice-atributo"
@@ -373,10 +382,6 @@
                             (drop (inc indice-atributo) concepto-CL)))
          especs)))
 
-(especializaciones-atributo-nominal [[*]] 0 [[:_ [:a :b]]])
-
-(especializaciones-atributo-nominal [[*][*][20][:si]] 0 (first ejemplos))
-
 ;; creo que el ejemplo del material de estudio está mal
 (assert (= [[[:soleado :lluvioso :niebla :diluvia][*][20][:si]]
             [[:nublado :lluvioso :niebla :diluvia][*][20][:si]]
@@ -389,7 +394,9 @@
 (assert (= [[[][*][20][:si]]]
            (especializaciones-atributo-nominal [[][*][20][:si]] 0 [first ejemplos])))
 
+(he-tardado 60 2.9)
 
+;; Ejercicio 10
 (defn generalizaciones-atributo-nominal
   "Devuelva una lista de todos los conceptos CL que sean generalización inmediata
   de concepto-CL en el atributo referenciado mediante indice-atributo"
@@ -414,3 +421,24 @@
            (generalizaciones-atributo-nominal [[:soleado][*][20][:si]] 3 (first ejemplos))))
 (assert (= [[[:soleado][*][20][*]]]
            (generalizaciones-atributo-nominal [[:soleado][*][20][*]] 3 (first ejemplos))))
+
+(he-tardado 60 2.10)
+
+;; Ejercicio 11
+(defn generalizacion-atributo-numerico
+  "Devuelve el concepto CL que es generalización inmediata de concepto-CL en el atributo
+  referenciado  mediante indice-atributo para el ejemplo"
+  [concepto-CL indice-atributo ejemplo]
+  (let [test (nth concepto-CL indice-atributo)
+        [a b] (normalize-numerico test)
+        atributo (nth ejemplo indice-atributo)
+        gener (cond (= :- (last ejemplo))  concepto-CL
+                    (match-numerico? test atributo) concepto-CL
+                    (lv< atributo a) (normalize-numerico [[atributo] b])
+                    (lv< b atributo) (normalize-numerico [a [atributo]])
+                    :else test)]
+     (concat (take indice-atributo concepto-CL)
+             [gener]
+             (drop (inc indice-atributo) concepto-CL))))
+
+(generalizacion-atributo-numerico [[:soleado][][20][:si]] 1 [:soleado 25 40 :si +])
