@@ -430,10 +430,12 @@
   referenciado  mediante indice-atributo para el ejemplo"
   [concepto-CL indice-atributo ejemplo]
   (let [test (nth concepto-CL indice-atributo)
-        [a b] (normalize-numerico test)
+        [a b :as t] (normalize-numerico test)
         atributo (nth ejemplo indice-atributo)
-        gener (cond (= :- (last ejemplo))  concepto-CL
-                    (match-numerico? test atributo) concepto-CL
+        gener (cond (= :- (last ejemplo))  test
+                    (match-numerico? test atributo) test
+                    (= [] t) [atributo]
+                    (= [*] t) test
                     (lv< atributo a) (normalize-numerico [[atributo] b])
                     (lv< b atributo) (normalize-numerico [a [atributo]])
                     :else test)]
@@ -441,4 +443,31 @@
              [gener]
              (drop (inc indice-atributo) concepto-CL))))
 
-(generalizacion-atributo-numerico [[:soleado][][20][:si]] 1 [:soleado 25 40 :si +])
+(assert (= [[:soleado][25][20][:si]]
+           (generalizacion-atributo-numerico [[:soleado][][20][:si]] 1
+                                             [:soleado 25 40 :si :+])))
+(assert (= [[:soleado][][20][:si]]
+           (generalizacion-atributo-numerico [[:soleado][][20][:si]] 1
+                                             [:soleado 25 40 :si :-])))
+(assert (= [[:soleado][15 30][20][:si]]
+           (generalizacion-atributo-numerico [[:soleado][15 30][20][:si]] 1
+                                             [:soleado 25 40 :si :+])))
+
+;; Ejercicio 12
+(defn especializaciones-atributo-numerico
+  "Devuelve una lista de todos los conceptos CL que sean especialización inmediata
+  de concepto-CL en el atributo referenciado mediante indice-atributo."
+  [concepto-CL indice-atributo ejemplo]
+  (let [test (nth concepto-CL indice-atributo)
+        [a b :as t] (normalize-numerico test)
+        atributo (nth ejemplo indice-atributo)
+        specs (cond (= :+ (last ejemplo))  [test]
+                    (not (match-numerico? test atributo)) [test]
+                    (= [] t) [[]]
+                    (= [*] t) [[:-inf atributo] [atributo :+inf]]
+                    (coll? a) (cond (lv< atributo a)) test
+                    (lv< b atributo) (normalize-numerico [a [atributo]])
+                    :else test)]
+    (concat (take indice-atributo concepto-CL)
+            [gener]
+            (drop (inc indice-atributo) concepto-CL))))
