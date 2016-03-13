@@ -5,16 +5,14 @@
 ;; Ejercicios 1 a 5 de la práctica 2
 
 ;; Por simplicidad defino los valores -infinito y +infinito como keyworkds
-;; :-inf
-;; :+inf
+;; :-inf y :+inf
 
 (defn- test-ambivalente?
   "Determina si un test puede ser aplicado indistintamente
   a un atributo numérico o nominal"
   [test]
-  (not (nil? (some #{[] [*]} [test]))))
-
-(assert (every? test-ambivalente? [[] [*]]))
+  (or (= [] test)
+      (= [*] test)))
 
 (defn- test-numerico?
   "Determina si un test es aplicable a un atributo numérico"
@@ -23,25 +21,12 @@
       (and ((some-fn :-inf :+inf number?) (if (coll? v1) (first v1) v1))
            ((some-fn :-inf :+inf number? nil?) (if (coll? v2) (first v2) v2)))))
 
-(assert (and (test-numerico? [])
-             (test-numerico? [*])
-             (test-numerico? [1])
-             (test-numerico? [1 2])
-             (test-numerico? [[1] 2])
-             (test-numerico? [[1] [2]])
-             (test-numerico? [1 [2]])))
-
 (defn- test-nominal?
   "Determina si un test es aplicable a un atributo nominal"
   [test]
   (or (test-ambivalente? test)
       (and (not (some #{:-inf :+inf} test))
            (every? keyword? test))))
-
-(assert (and (test-nominal? [])
-             (test-nominal? [*])
-             (test-nominal? [:a])
-             (test-nominal? [:a :b])))
 
 (defn- match-nature?
   "Determina si un test (o array de ellos) y un atributo (o array de ellos)
@@ -56,19 +41,6 @@
        (and (test-numerico? test) (number? atributo))
        (and (test-nominal? test) (keyword? atributo)))))
 
-(assert (and (match-nature? [] 1)
-             (match-nature? [*] 1)
-             (match-nature? [1] 1)
-             (match-nature? [1 2] 1)
-             (match-nature? [[1]] 1)
-             (match-nature? [[1] 2] 1)
-             (match-nature? [1 [2]] 1)
-             (match-nature? [[1] [2]] 1)
-             (match-nature? [:a] :b)
-             (match-nature? [:a :b] :c)
-             (match-nature? [] :a)
-             (match-nature? [*] :a)))
-
 (defn- match-ambivalente?
   "Determina si un atributo satisface un test ambivalente"
   [test atributo]
@@ -80,9 +52,6 @@
   (or (match-ambivalente? test atributo)
       (not (nil? (some (set test) [atributo])))))
 
-(assert (and (match-nominal? [:a] :a)
-             (match-nominal? [:a :b] :a)
-             (not (match-nominal? [:a :b] :c))))
 
 ;; Defino funciones que nos permiten comparar límites de intervalos
 ;; normalizados con valores
@@ -465,9 +434,10 @@
                     (not (match-numerico? test atributo)) [test]
                     (= [] t) [[]]
                     (= [*] t) [[:-inf atributo] [atributo :+inf]]
-                    (coll? a) (cond (lv< atributo a)) test
-                    (lv< b atributo) (normalize-numerico [a [atributo]])
-                    :else test)]
+                    ;(coll? a) (cond (lv< atributo a)) test
+                    ;(lv< b atributo) (normalize-numerico [a [atributo]])
+                    ;:else test
+                    )]
     (concat (take indice-atributo concepto-CL)
-            [gener]
+            [specs]
             (drop (inc indice-atributo) concepto-CL))))
