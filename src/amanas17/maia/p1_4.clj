@@ -1,6 +1,6 @@
 (ns amanas17.maia.p1-4
-  (:use [amanas17.maia.p1-1]
-        [amanas17.maia.p1-3]))
+  (:requiere [amanas17.maia.p1-1 :refer :all]
+             [amanas17.maia.p1-3 :refer :all]))
 
 (defn sort-randomly
   "Ordena aleatoriamente una lista"
@@ -12,7 +12,7 @@
               xs (remove (partial = x) xs)]
           (recur (conj rxs x) xs)))))
 
-;; ejercicio 12
+;; Ejercicio 1.12
 (defn separar
   "Separa la lista de entrada en dos manteniendo la proporción
    de cardinalidad indicada por p
@@ -24,11 +24,9 @@
         rxs (sort-randomly body)]
     [(into [head] (take m rxs)) (into [head] (drop m rxs))]))
 
-(assert (= [21 81] (->> (separar 2/10 (into [:header] (range 100)))
-                        (map count))))
-(he-tardado 240 12)
+(he-tardado 240 1.12)
 
-;; ejercicio 13
+;; Ejercicio 1.13
 (defn folds
   "Separa en n folds una lista.
    Añade aleatoriedad
@@ -39,13 +37,9 @@
       (let [[l r] (separar (/ 1 n) xs)]
         (concat [l] (folds r (dec n))))))
 
-(assert (let [fs (folds (into [:header] (range 100)) 10)]
-          (and (= 10 (count fs))
-               (= (repeat 10 11) (map count fs))
-               (= (repeat 10  :header) (map first fs)))))
-(he-tardado 60 13)
+(he-tardado 60 1.13)
 
-;; ejercicio 14
+;; Ejercicio 1.14
 (defn stratify
   "Separa en n folds una lista de modo que la proporción de ejemplos
    de cada clase se mantiene similar en cada fold
@@ -58,5 +52,4 @@
         weighted-folds (folds weighted-body n)]
     (map (fn[wf] (map first wf)) weighted-folds)))
 
-(assert (= 3 (count (stratify 3 ejemplos))))
-(he-tardado 240 14)
+(he-tardado 240 1.14)

@@ -3,31 +3,28 @@
 (defn he-tardado [m e]
   (prn (str "He tardado " m " minutos en el ejercicio " e)))
 
-; ejercicio 2
+;; Ejercicio 1.2
 (defn siguiente [l]
   (map inc l))
 
-(assert (= (siguiente '(1 2)) '(2 3)))
-(he-tardado 1 2)
+(he-tardado 1 1.2)
 
-; ejercicio 3
+;; Ejercicio 1.3
 (defn sumas [l1 l2]
   (->> l2
        (interleave l1)
        (partition 2)
        (map (partial apply +))))
 
-(assert (= (sumas '(1 2) '(3 4)) '(4 6)))
-(he-tardado 10 3)
+(he-tardado 10 1.3)
 
-; ejercico 4
+;; Ejercico 1.4
 (defn factorial [n]
   (if (= 1 n) 1 (->> n dec factorial (* n))))
 
-(assert (= (factorial 5) 120))
-(he-tardado 20 4)
+(he-tardado 20 1.4)
 
-; ejercicio 5
+;; Ejercicio 1.5
 (def cdf-1 (fn [pairs]
              (let [freqs (map second pairs)
                    total (apply + freqs)
@@ -49,14 +46,7 @@
     :default
     (first (obtener-al-azar (map (fn [v] (vector v 1)) elements)))))
 
-(def example-1 [[:a 1] [:b 2] [:c 3]])
-(assert (some (set example-1) [(obtener-al-azar example-1)]))
-(assert (some #{1 2} [(obtener-al-azar [1 2])]))
-(comment (prn (frequencies (take 6000 (repeatedly #(obtener-al-azar example-1))))))
-(he-tardado 120 5)
+(he-tardado 180 1.5)
 
-; ejercicio 6 - impementado en el 5
-(def example-2 [:a :b :c])
-(assert (obtener-al-azar example-2))
-(comment (prn (frequencies (take 6000 (repeatedly #(obtener-al-azar example-2))))))
-(he-tardado 60 6)
+;; Ejercicio 1.6 - impementado en el 5
+(he-tardado 0 1.6)

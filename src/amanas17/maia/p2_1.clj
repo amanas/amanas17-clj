@@ -332,14 +332,13 @@
 (assert (= [[[:soleado][*][20][:fuerte]]
             [[:soleado][*][20][:brisa]]
             [[:soleado][*][20][:no]]]
-           (generalizaciones-atributo-nominal [[:soleado][*][20][]] 3 (first ejemplos))))
+           (prn(generalizaciones-atributo-nominal [[:soleado][*][20][]] 3 (first ejemplos)))))
 (assert (= [[[:soleado][*][20][:si :fuerte]]
-            [[:soleado][*][20] [:si :brisa]]
-            [[:soleado][*][20] [:si :no]]]
+            [[:soleado][*][20][:si :brisa]]
+            [[:soleado][*][20][:si :no]]]
            (generalizaciones-atributo-nominal [[:soleado][*][20][:si]] 3 (first ejemplos))))
 (assert (= [[[:soleado][*][20][*]]]
            (generalizaciones-atributo-nominal [[:soleado][*][20][*]] 3 (first ejemplos))))
-
 (he-tardado 60 2.10)
 
 ;; Ejercicio 11

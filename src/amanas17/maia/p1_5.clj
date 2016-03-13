@@ -1,7 +1,7 @@
 (ns amanas17.maia.p1-5
-  (:use [amanas17.maia.p1-1]
-        [amanas17.maia.p1-3]
-        [amanas17.maia.p1-4]))
+  (:requiere [amanas17.maia.p1-1 :refer :all]
+             [amanas17.maia.p1-3 :refer :all]
+             [amanas17.maia.p1-4 :refer :all]))
 
 ;; Para los siguientes ejercicios, primero traduzco a clojure la función A0
 (defn A0
@@ -67,9 +67,9 @@
 ;; Claro que existen herrores: todos aquellos ejemplos que tenían una clase
 ;; que no era la más común entre la población total han sido modificados.
 ;; Ahora todos tienen la misma clase
-(he-tardado 90 15)
+(he-tardado 90 1.15)
 
-;; Ejercicio 16
+;; Ejercicio 1.16
 (defn calcula-precision
   "Calcula la precisión de una predicción
    Asume que ejemplos y extensión son listas con cabecera de descripción de atributos"
@@ -80,8 +80,6 @@
                       (partition 2)
                       (filter (fn [[ej ex]](= (last ej) (last ex))))                                         count)]
     (/ aciertos todos)))
-
-(assert (= (calcula-precision ejemplos extension) 13/20))
 
 (defn calcula-error
   "Calcula el error de una predicción
@@ -94,17 +92,14 @@
                     count)]
     (/ fallos todos)))
 
-(assert (= (calcula-error ejemplos extension) 7/20))
-(he-tardado 45 16)
+(he-tardado 45 1.16)
 
-;; Ejercicio 17
+;; Ejercicio 1.17
 (def ejemplos2 (leer-ejemplos "resources/maia/ejemplos2.scm"))
 (def ejemplos-sin-clase2 (map butlast ejemplos2))
 (def extension2-A0-A0i (map (partial A0i esencia) ejemplos-sin-clase2))
 (def precision2-A0-A0i (calcula-precision ejemplos2 extension2-A0-A0i))
 (def error2-A0-A0i (calcula-error ejemplos2 extension2-A0-A0i))
-(assert (= precision2-A0-A0i 3/5))
-(assert (= error2-A0-A0i 2/5))
 
 ;; Comentarios:
 ;; La precisión y el error son muy distintos al ser calculados sobre estos
@@ -120,9 +115,9 @@
 ;; Pero esto sólo tiene que ver con el azar propio de los 5 ejemplos elegidos
 ;; en este caso, no con mayor análisis de las propiedades de cada ejemplo.
 
-(he-tardado 90 17)
+(he-tardado 90 1.17)
 
-;; Ejercicio 18
+;; Ejercicio 1.18
 (defn A1
   "Algortimo de aprendizaje que devuelve la contabilización de los
    distintos valores de la clase en los ejemplos"
@@ -156,7 +151,6 @@
     ;; se actualiza la contabilizacion de clases.
     (doall (map  actualizar-contabilizacion casos))
     (vec @clases-contabilizadas)))
-(assert  (= (A1 ejemplos) [[:+ 7] [:- 13]]))
 
 (defn A1i
   "Infiere la clase de acuerdo con la frecuencia que ésta presenta en los ejemplos"
@@ -170,13 +164,10 @@
         error2-A1-A1i (calcula-error ejemplos2 extension2-A1-A1i)]
     [precision2-A1-A1i error2-A1-A1i]))
 
-(comment "One classification"
-         (clasifica-con-A1-A1i ejemplos2))
-
-(he-tardado 60 18)
+(he-tardado 60 1.18)
 
 
-;; Ejercicio 19
+;; Ejercicio 1.19
 ;; Mediante los 5 ejemplos (días) anteriores compare la precisión de
 ;; A0/A0i respecto a la precisión de A1/A1i
 
@@ -209,4 +200,4 @@
 ;; Hasta donde llega mi conocimiento, diría que no, no creo que este algoritmo mejore
 ;; las predicciones.
 
-(he-tardado 90 19)
+(he-tardado 90 1.19)

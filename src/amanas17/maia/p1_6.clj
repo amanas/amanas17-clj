@@ -1,11 +1,11 @@
 (ns amanas17.maia.p1-6
-  (:use [amanas17.maia.p1-1]
-        [amanas17.maia.p1-3]
-        [amanas17.maia.p1-4]
-        [amanas17.maia.p1-5]))
+  (:requiere [amanas17.maia.p1-1 :refer :all]
+             [amanas17.maia.p1-3 :refer :all]
+             [amanas17.maia.p1-4 :refer :all]
+             [amanas17.maia.p1-5 :refer :all]))
 
 
-;; Ejercicio 22
+;; Ejercicio 1.22
 
 (def all-ejemplos (mezclar ejemplos ejemplos2))
 
@@ -17,10 +17,6 @@
         ejemplos-sin-clase (map butlast ejemplos)
         extension (map (partial interprete concepto) ejemplos-sin-clase)]
     (calcula-precision ejemplos extension)))
-
-(comment
-  (prn "Precisión con resustitución  A0 A0i" (resustitution  A0 A0i all-ejemplos))
-  (prn "Precisión con resustitución  A1 A1i" (resustitution  A1 A1i all-ejemplos)))
 
 (defn leave-one-out
   "Por cada ejemplo:
@@ -39,14 +35,10 @@
          extension (map (partial interprete concepto) (map butlast prueba))]
      (calcula-precision prueba extension))))
 
-(comment
-  (prn "Precisión con leave-one-out  A0 A0i" (leave-one-out  A0 A0i all-ejemplos))
-  (prn "Precisión con leave-one-out  A1 A1i" (leave-one-out  A1 A1i all-ejemplos)))
-
-(he-tardado 360 22)
+(he-tardado 360 1.22)
 
 
-;; Ejercicio 23
+;; Ejercicio 1.23
 (defn holdout
   "Técnica de aprendizaje consistente en
     - entrenar con el conjunto entrenamiento
@@ -56,15 +48,10 @@
         extension (map (partial interprete concepto) (map butlast evaluacion))]
     (calcula-precision evaluacion extension)))
 
-(comment
-  (let [[entrenamiento evaluacion] (separar 2/3 all-ejemplos)]
-    (prn "Precisión con holdout  A0 A0i" (holdout  A0 A0i entrenamiento evaluacion))
-    (prn "Precisión con holdout  A1 A1i" (holdout  A1 A1i entrenamiento evaluacion))))
-
-(he-tardado 90 23)
+(he-tardado 90 1.23)
 
 
-;; Ejercicio 24
+;; Ejercicio 1.24
 (defn cross-validation
   "Técnica de apendizaje consistente en:
     - generar tantos folds en el conjunto entrenamiento como indica n-folds
@@ -88,3 +75,5 @@
 ;; cuenta que tenemos 25 ejemplos en lugar de 3
 (assert (= (cross-validation A0 A0i all-ejemplos 25)
            (leave-one-out A0 A0i all-ejemplos)))
+
+(he-tardado 120 1.24)
