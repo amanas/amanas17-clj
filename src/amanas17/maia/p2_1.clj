@@ -52,30 +52,19 @@
   (or (match-ambivalente? test atributo)
       (not (nil? (some (set test) [atributo])))))
 
-
-;; Defino funciones que nos permiten comparar límites de intervalos
-;; normalizados con valores
-(defn- lv<= [l v]
-  (cond (= :-inf l)            true
-        (= :+inf v)            true
-        (every? coll? [l v])  (lv<=  l (first v))
-        (coll? l)             (lv<= (first l) v)
-        (every? number? [l v])(<= l v)
-        :else                 false))
-(defn- lv=  [l v] (and (lv<= l v) (lv<= v l)))
-(defn- lv<  [l v] (and (lv<= l v) (not (lv= l v))))
-(defn- lv>  [l v] (not (lv<= l v)))
-(defn- lv>= [l v] (not (lv<  l v)))
-
-(defn- weird?
-  "Indica si el test es 'extraño', es decir, con extremos validos pero
-  sin valores posibles en su interior. Es decir, casos de este tipo:
-  - [[a] a]
-  - [a [a]]
-  siendo a un valor numérico, :-inf o :+inf"
-  [l1 l2]
-  (or (and (coll? l1) (not (coll? l2)) (lv= (first l1) l2))
-      (and (not (coll? l1)) (coll? l2) (lv= l1 (first l2))))  )
+(defn- comp<=
+  "Función auxiliar que permite comparar extremos de intervalos normalizados.
+  Sobre esta función recae en última instancia el orden parcial de los tests
+  numéricos"
+  [a b]
+  (cond (= :-inf a)            true
+        (= :+inf b)            true
+        (every? number? [a b]) (<= a b)
+        :else                  false))
+(defn- comp=  [a b] (and (comp<= a b) (comp<= b a)))
+(defn- comp<  [a b] (and (comp<= a b) (not (comp= a b))))
+(defn- comp>  [a b] (not (comp<= a b)))
+(defn- comp>= [a b] (not (comp<  a b)))
 
 (defn- normalize-numerico
   "Los tests numéricos admiten demasiada variedad en su forma de
@@ -89,46 +78,47 @@
   - [a [b]]
   - [[a] [b]]
   siendo a y b números o :-inf, :+inf"
-  [[l1 l2 :as t]]
-  (cond (= t [])            []
-        (= t [*])           [*]
-        (= t [:-inf :+inf]) [*]
-        (= [:-inf] l1)      (normalize-numerico [:-inf l2])
-        (= [:+inf] l2)      (normalize-numerico [l1 :+inf])
-        (nil? l2)           (normalize-numerico [l1 l1])
-        (weird? l1 l2)      []
-        (lv= l1 l2)         (if (every? coll? [l1 l2]) [(first l1) (first l2)] t)
-        (coll? l2)          (if (lv< l1 (first l2)) t [])
-        (lv> l1 l2)         []
-         :else               t))
+  [[a b :as t]]
+  (cond (= [] t)             []
+        (= [*] t)            [*]
+        (= [:-inf] a)        (normalize-numerico [:-inf b])
+        (= [:+inf] b)        (normalize-numerico [a :+inf])
+        (= [:-inf :+inf] t)  [*]
+        (nil? b)             (normalize-numerico [a a])
+        (every? coll? [a b]) (cond (comp= (first a) (first b)) [(first a) (first b)]
+                                   (comp< (first a) (first b)) t
+                                   :else                       [])
+        (coll? a)            (if (comp< (first a) b) t [])
+        (coll? b)            (if (comp< a (first b)) t [])
+        (comp<= a b)         t
+        :else                []))
 
-(assert (and
-         (= [] (normalize-numerico []))
-         (= [*] (normalize-numerico [*]))
-         (= [:-inf 1] (normalize-numerico [:-inf 1]))
-         (= [] (normalize-numerico [1 :-inf]))
-         (= [1 :+inf] (normalize-numerico [1 :+inf]))
-         (= [] (normalize-numerico [:+inf 1]))
-         (= [:-inf 1] (normalize-numerico [[:-inf] 1]))
-         (= [1 1] (normalize-numerico [1]))
-         (= [1 1] (normalize-numerico [[1]]))
-         (= [1 1] (normalize-numerico [1 1]))
-         (= [] (normalize-numerico [1 [1]]))
-         (= [] (normalize-numerico [[1] 1]))
-         (= [1 2] (normalize-numerico [1 2]))
-         (= [1 [2]] (normalize-numerico [1 [2]]))
-         (= [[1] 2] (normalize-numerico [[1] 2]))
-         (= [[1] [2]] (normalize-numerico [[1] [2]])))
-        (= [] (normalize-numerico [2 1])))
+(assert (and (= [] (normalize-numerico []))
+             (= [*] (normalize-numerico [*]))
+             (= [:-inf 1] (normalize-numerico [:-inf 1]))
+             (= [] (normalize-numerico [1 :-inf]))
+             (= [1 :+inf] (normalize-numerico [1 :+inf]))
+             (= [] (normalize-numerico [:+inf 1]))
+             (= [:-inf 1] (normalize-numerico [[:-inf] 1]))
+             (= [1 1] (normalize-numerico [1]))
+             (= [1 1] (normalize-numerico [[1]]))
+             (= [1 1] (normalize-numerico [1 1]))
+             (= [] (normalize-numerico [1 [1]]))
+             (= [] (normalize-numerico [[1] 1]))
+             (= [1 2] (normalize-numerico [1 2]))
+             (= [1 [2]] (normalize-numerico [1 [2]]))
+             (= [[1] 2] (normalize-numerico [[1] 2]))
+             (= [[1] [2]] (normalize-numerico [[1] [2]]))
+             (= [] (normalize-numerico [2 1]))))
 
 (defn- match-numerico?
   "Determina si un atributo numérico satisface un test numérico"
   [test v]
-  (let [[l1 l2] (normalize-numerico test)]
-    (or (match-ambivalente? test v)
-        (cond (= l1 l2) (= l1 v)
-              :else     (and (if (coll? l1) (lv<= (first l1) v) (lv< l1 v))
-                             (if (coll? l2) (lv<= v (first l2)) (lv< v l2)))))))
+  (let [[a b :as t] (normalize-numerico test)]
+    (or (match-ambivalente? t v)
+        (= a b v)
+        (and (if (coll? a) (comp<= (first a) v) (comp< a v))
+             (if (coll? b) (comp<= v (first b)) (comp< v b))))))
 
 (assert (and (match-numerico? [1] 1)
              (match-numerico? [1 2] 1.5)
@@ -241,18 +231,33 @@
              (test-ambivalente>= [] [])
              (not (test-ambivalente>= [] [*]))))
 
-(defn- test-numerico>= [t1 t2]
+
+(defn- extremo<=
+  "Compara extremos de intervalos"
+  [a b]
+  (cond (= :-inf a)          true
+        (= :+inf b)          true
+        (every? coll? [a b]) (comp<= (first a) (first b))
+        (coll? a)            (comp<= (first a) b)
+        (coll? b)            (comp< a (first b))
+        :else                (comp<= a b)))
+
+(defn- contenido?
+  "Determina si un test numérico está contenido en otro"
+  [t1 t2]
+  (let [[a b :as t1] (normalize-numerico t1)
+        [c d :as t2] (normalize-numerico t2)]
+    (or (= [] t1)
+        (= [*] t2)
+        (and (extremo<= c a)
+             (extremo<= b d)))))
+
+(defn- test-numerico>=
   "Indica si un test numérico es más general o de la misma categoría
   que otro"
-  (let [[l1 r1 :as t1] (normalize-numerico t1)
-        [l2 r2 :as t2] (normalize-numerico t2)
-        t1-in-t2 (or (= t1 [])
-                     (= t2 [*])
-                     (and (lv<= l2 l1) (lv<= r1 r2)))
-        t2-in-t1 (or (= t2 [])
-                     (= t1 [*])
-                     (and (lv<= l1 l2) (lv<= r2 r1)))]
-    (or t2-in-t1 (not t1-in-t2))))
+  [t1 t2]
+  (or (contenido? t2 t1)
+      (not (contenido? t1 t2))))
 
 (assert (and (test-numerico>= [1 2] [3 4])
              (test-numerico>= [1 4] [2 3])
@@ -347,8 +352,8 @@
         especs (map (fn [v] (remove #{v} test)) test)
         especs (if (empty? especs) [[]] especs)]
     (map (fn [espec] (concat (take indice-atributo concepto-CL)
-                            [espec]
-                            (drop (inc indice-atributo) concepto-CL)))
+                             [espec]
+                             (drop (inc indice-atributo) concepto-CL)))
          especs)))
 
 ;; creo que el ejemplo del material de estudio está mal
@@ -405,12 +410,12 @@
                     (match-numerico? test atributo) test
                     (= [] t) [atributo]
                     (= [*] t) test
-                    (lv< atributo a) (normalize-numerico [[atributo] b])
-                    (lv< b atributo) (normalize-numerico [a [atributo]])
+                    (comp< atributo a) (normalize-numerico [[atributo] b])
+                    (comp< b atributo) (normalize-numerico [a [atributo]])
                     :else test)]
-     (concat (take indice-atributo concepto-CL)
-             [gener]
-             (drop (inc indice-atributo) concepto-CL))))
+    (concat (take indice-atributo concepto-CL)
+            [gener]
+            (drop (inc indice-atributo) concepto-CL))))
 
 (assert (= [[:soleado][25][20][:si]]
            (generalizacion-atributo-numerico [[:soleado][][20][:si]] 1
@@ -434,8 +439,8 @@
                     (not (match-numerico? test atributo)) [test]
                     (= [] t) [[]]
                     (= [*] t) [[:-inf atributo] [atributo :+inf]]
-                    ;(coll? a) (cond (lv< atributo a)) test
-                    ;(lv< b atributo) (normalize-numerico [a [atributo]])
+                    ;(coll? a) (cond (comp< atributo a)) test
+                    ;(comp< b atributo) (normalize-numerico [a [atributo]])
                     ;:else test
                     )]
     (concat (take indice-atributo concepto-CL)
