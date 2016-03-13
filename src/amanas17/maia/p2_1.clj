@@ -53,7 +53,8 @@
       (not (nil? (some (set test) [atributo])))))
 
 (defn- comp<=
-  "Función auxiliar que permite comparar extremos de intervalos normalizados.
+  "Función auxiliar que permite hacer comparaciones habida cuenta de que ahora
+  :-inf y :+inf tienen que poderse comparar con números.
   Sobre esta función recae en última instancia el orden parcial de los tests
   numéricos"
   [a b]
@@ -93,24 +94,6 @@
         (comp<= a b)         t
         :else                []))
 
-(assert (and (= [] (normalize-numerico []))
-             (= [*] (normalize-numerico [*]))
-             (= [:-inf 1] (normalize-numerico [:-inf 1]))
-             (= [] (normalize-numerico [1 :-inf]))
-             (= [1 :+inf] (normalize-numerico [1 :+inf]))
-             (= [] (normalize-numerico [:+inf 1]))
-             (= [:-inf 1] (normalize-numerico [[:-inf] 1]))
-             (= [1 1] (normalize-numerico [1]))
-             (= [1 1] (normalize-numerico [[1]]))
-             (= [1 1] (normalize-numerico [1 1]))
-             (= [] (normalize-numerico [1 [1]]))
-             (= [] (normalize-numerico [[1] 1]))
-             (= [1 2] (normalize-numerico [1 2]))
-             (= [1 [2]] (normalize-numerico [1 [2]]))
-             (= [[1] 2] (normalize-numerico [[1] 2]))
-             (= [[1] [2]] (normalize-numerico [[1] [2]]))
-             (= [] (normalize-numerico [2 1]))))
-
 (defn- match-numerico?
   "Determina si un atributo numérico satisface un test numérico"
   [test v]
@@ -119,13 +102,6 @@
         (= a b v)
         (and (if (coll? a) (comp<= (first a) v) (comp< a v))
              (if (coll? b) (comp<= v (first b)) (comp< v b))))))
-
-(assert (and (match-numerico? [1] 1)
-             (match-numerico? [1 2] 1.5)
-             (match-numerico? [[1] 2] 1)
-             (match-numerico? [1 [2]] 2)
-             (match-numerico? [[1] [2]] 1)
-             (match-numerico? [1 1] 1)))
 
 (defn- match?
   "Determina si un test (o array de ellos) y un atributo (o array de ellos)
@@ -226,12 +202,6 @@
   (or (= [*] test1)
       (= [] test2)))
 
-(assert (and (test-ambivalente>= [*] [*])
-             (test-ambivalente>= [*] [])
-             (test-ambivalente>= [] [])
-             (not (test-ambivalente>= [] [*]))))
-
-
 (defn- extremo<=
   "Compara extremos de intervalos"
   [a b]
@@ -242,7 +212,7 @@
         (coll? b)            (comp< a (first b))
         :else                (comp<= a b)))
 
-(defn- contenido?
+(defn- test-contenido?
   "Determina si un test numérico está contenido en otro"
   [t1 t2]
   (let [[a b :as t1] (normalize-numerico t1)
@@ -256,28 +226,8 @@
   "Indica si un test numérico es más general o de la misma categoría
   que otro"
   [t1 t2]
-  (or (contenido? t2 t1)
-      (not (contenido? t1 t2))))
-
-(assert (and (test-numerico>= [1 2] [3 4])
-             (test-numerico>= [1 4] [2 3])
-             (test-numerico>= [1 3] [2 4])
-             (not (test-numerico>= [2 3] [1 4]))
-             (test-numerico>= [1 2] [1 2])
-             (test-numerico>= [1] [1])
-             (test-numerico>= [1] [1 1])
-             (test-numerico>= [1 1] [1])
-             (test-numerico>= [1 1] [1 1])
-             (not (test-numerico>= [[1] 1] [1 1]))
-             (not (test-numerico>= [1 [1]] [1 1]))
-             (test-numerico>= [1 1] [[1] 1])
-             (test-numerico>= [1 1] [1 [1]])
-             (not (test-numerico>= [1 2] [[1] 2]))
-             (test-numerico>= [1 2] [1 [2]])
-             (test-numerico>= [:-inf 1] [1 1])
-             (not (test-numerico>= [:+inf 1] [1 1]))
-             (test-numerico>= [1 :+inf] [1 1])
-             (not (test-numerico>= [1 :-inf] [1 1]))))
+  (or (test-contenido? t2 t1)
+      (not (test-contenido? t1 t2))))
 
 (defn- test-nominal>=
   "Indica si un test nominal es más general o de la misma categoría
@@ -285,12 +235,6 @@
   [t1 t2]
   (or (every? (set t1) t2)
       (not (every? (set t2) t1))))
-
-(assert (and (test-nominal>= [:a :b] [:a])
-             (test-nominal>= [:a :b] [:a :c])
-             (not (test-nominal>= [:a] [:a :b]))
-             (not (test-nominal>= [] [:a]))
-             (test-nominal>= [:a] [])))
 
 ;; Ejercicio 6
 (defn test-CL>=
