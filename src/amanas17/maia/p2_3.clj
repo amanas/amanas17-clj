@@ -70,17 +70,23 @@
   referenciado por indice-atributo, devuelve una lista con las especializaciones inmediata
   del concepto-CL que en el atributo referenciado por indice-atributo."
   [concepto-CL indice-atributo ejemplo]
-  (let [test (nth concepto-CL indice-atributo)
-        [a b :as t] (normalize-numerico test)
-        atributo (nth ejemplo indice-atributo)
-        specs (cond (= :+ (last ejemplo))  [test]
-                    (not (match-numerico? test atributo)) [test]
-                    (= [] t) [[]]
-                    (= [*] t) [[:-inf atributo] [atributo :+inf]]
-                    ;(coll? a) (cond (comp< atributo a)) test
-                    ;(comp< b atributo) (normalize-numerico [a [atributo]])
-                    ;:else test
-                    )]
-    (concat (take indice-atributo concepto-CL)
-            [specs]
-            (drop (inc indice-atributo) concepto-CL))))
+  (if (= :+ (last ejemplo)) [concepto-CL]
+    (let [test (nth concepto-CL indice-atributo)]
+      (if (not (match-numerico? test atributo)) [concepto-CL]
+        (let [[a b :as t] (normalize-numerico test)
+              atributo (nth ejemplo indice-atributo)
+              specs (cond (= [] t) [[]]
+                          (= [*] t) [[:-inf atributo] [atributo :+inf]]
+                          :else [(normalize-numerico [a atributo]) (normalize-numerico [atributo b])])]
+          (map (fn [spec] (concat (take indice-atributo concepto-CL)
+                                  [spec]
+                                  (drop (inc indice-atributo) concepto-CL)))
+               specs))))))
+
+
+
+
+
+
+
+

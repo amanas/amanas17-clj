@@ -45,3 +45,33 @@
                                              [:soleado 25 40 :si :+])))
 
 ;; Ejercicio 2.12 - tests
+(assert (= [[[*][:-inf 25][20][:si]]
+            [[*][25 :+inf][20][:si]]]
+           (especializaciones-atributo-numerico [[*][*][20][:si]] 1
+                                                [:soleado 25 40 :si :-])))
+(assert (= [[[*][*][20][:si]]]
+           (especializaciones-atributo-numerico [[*][*][20][:si]] 1
+                                                [:soleado 25 40 :si :+])))
+
+(assert (= [[[*][10 15][20][:si]]]
+           (especializaciones-atributo-numerico [[*][10 15][20][:si]] 1
+                                                [:soleado 25 40 :si :-])))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
