@@ -7,11 +7,11 @@
 
 ;; Ejercicio 2.9 - tests
 ;; creo que el ejemplo del material de estudio está mal
-(assert (= [[[:niebla :nublado :lluvioso :diluvia] [*] [20] [:si]]
-            [[:soleado :nublado :lluvioso :diluvia] [*] [20] [:si]]
-            [[:soleado :niebla :lluvioso :diluvia] [*] [20] [:si]]
-            [[:soleado :niebla :nublado :diluvia] [*] [20] [:si]]
-            [[:soleado :niebla :nublado :lluvioso] [*] [20] [:si]]]
+(assert (= [[[:niebla  :nublado :lluvioso :diluvia]  [*] [20] [:si]]
+            [[:soleado :nublado :lluvioso :diluvia]  [*] [20] [:si]]
+            [[:soleado :niebla  :lluvioso :diluvia]  [*] [20] [:si]]
+            [[:soleado :niebla  :nublado  :diluvia]  [*] [20] [:si]]
+            [[:soleado :niebla  :nublado  :lluvioso] [*] [20] [:si]]]
            (especializaciones-atributo-nominal [[*][*][20][:si]] 0
                                                (first ejemplos))))
 (assert (= [[[][*][20][:si]]]

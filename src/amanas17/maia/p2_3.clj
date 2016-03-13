@@ -40,27 +40,35 @@
 
 ;; Ejercicio 2.11
 (defn generalizacion-atributo-numerico
-  "Devuelve el concepto CL que es generalización inmediata de concepto-CL en el atributo
-  referenciado  mediante indice-atributo para el ejemplo"
+  "** Objetivo: el nuevo concepto cubre el ejemplo si es positivo **
+  En el caso de que el ejemplo sea negativo o el concepto-CL ya cubra el ejemplo en el atributo
+  referenciado por indice-atributo, devuelve el concepto-CL tal cual lo recibe.
+  En el caso de que el ejemplo sea positivo y el concepto-CL no cubra el ejemplo en el atributo
+  referenciado por indice-atributo, devuelve la generalición inmediata del concepto-CL que si
+  cubre el ejemplo en el atributo referenciado por indice-atributo."
   [concepto-CL indice-atributo ejemplo]
-  (let [test (nth concepto-CL indice-atributo)
-        [a b :as t] (normalize-numerico test)
-        atributo (nth ejemplo indice-atributo)
-        gener (cond (= :- (last ejemplo))  test
-                    (match-numerico? test atributo) test
-                    (= [] t) [atributo]
-                    (= [*] t) test
-                    (comp< atributo a) (normalize-numerico [[atributo] b])
-                    (comp< b atributo) (normalize-numerico [a [atributo]])
-                    :else test)]
-    (concat (take indice-atributo concepto-CL)
-            [gener]
-            (drop (inc indice-atributo) concepto-CL))))
+  (if (= :- (last ejemplo))  concepto-CL
+    (let [test (nth concepto-CL indice-atributo)]
+      (if (match-numerico? test atributo) concepto-CL
+        (let [[a b :as t] (normalize-numerico test)
+              atributo (nth ejemplo indice-atributo)
+              gener (cond (= [] t) [atributo]
+                          (= [*] t) test
+                          (extremo<= atributo a) (normalize-numerico [[atributo] b])
+                          (extremo<= b atributo) (normalize-numerico [a [atributo]])
+                          :else test)]
+          (concat (take indice-atributo concepto-CL)
+                  [gener]
+                  (drop (inc indice-atributo) concepto-CL)))))))
 
 ;; Ejercicio 2.12
 (defn especializaciones-atributo-numerico
-  "Devuelve una lista de todos los conceptos CL que sean especialización inmediata
-  de concepto-CL en el atributo referenciado mediante indice-atributo."
+  "** Objetivo: el nuevo concepto rechaza el ejemplo si es negativo **
+  En el caso de que el ejemplo sea positivo o el concepto-CL no cubra el ejemplo en el atributo
+  referenciado por indice-atributo, devuelve el concepto-CL tal cual lo recibe.
+  En el caso de que el ejemplo sea negativo y el concepto-CL si cubra el ejemplo en el atributo
+  referenciado por indice-atributo, devuelve una lista con las especializaciones inmediata
+  del concepto-CL que en el atributo referenciado por indice-atributo."
   [concepto-CL indice-atributo ejemplo]
   (let [test (nth concepto-CL indice-atributo)
         [a b :as t] (normalize-numerico test)

@@ -71,7 +71,7 @@
 
 ;; Ejercicio 2.2 - tests
 ;; Nota:
-;; hay un error tipográfico en este ejemplo en el material de estudio
+;; creo que hay un error tipográfico en este ejemplo en el material de estudio
 (assert (= [:soleado 30 40 :si :+]
            (CLi [[:soleado] [*] [10 [40]] [:si]] [:soleado 30 40 :si])))
 
