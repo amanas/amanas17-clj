@@ -1,8 +1,8 @@
 (ns amanas17.maia.p1-6
-  (:requiere [amanas17.maia.p1-1 :refer :all]
-             [amanas17.maia.p1-3 :refer :all]
-             [amanas17.maia.p1-4 :refer :all]
-             [amanas17.maia.p1-5 :refer :all]))
+  (:require [amanas17.maia.p1-1 :refer :all]
+            [amanas17.maia.p1-3 :refer :all]
+            [amanas17.maia.p1-4 :refer :all]
+            [amanas17.maia.p1-5 :refer :all]))
 
 
 ;; Ejercicio 1.22

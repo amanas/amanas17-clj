@@ -1,7 +1,7 @@
 (ns amanas17.maia.p1-5
-  (:requiere [amanas17.maia.p1-1 :refer :all]
-             [amanas17.maia.p1-3 :refer :all]
-             [amanas17.maia.p1-4 :refer :all]))
+  (:require [amanas17.maia.p1-1 :refer :all]
+            [amanas17.maia.p1-3 :refer :all]
+            [amanas17.maia.p1-4 :refer :all]))
 
 ;; Para los siguientes ejercicios, primero traduzco a clojure la función A0
 (defn A0

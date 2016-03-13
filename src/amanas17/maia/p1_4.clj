@@ -1,6 +1,6 @@
 (ns amanas17.maia.p1-4
-  (:requiere [amanas17.maia.p1-1 :refer :all]
-             [amanas17.maia.p1-3 :refer :all]))
+  (:require [amanas17.maia.p1-1 :refer :all]
+            [amanas17.maia.p1-3 :refer :all]))
 
 (defn sort-randomly
   "Ordena aleatoriamente una lista"
