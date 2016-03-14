@@ -57,21 +57,37 @@
            (especializaciones-atributo-numerico [[*][10 15][20][:si]] 1
                                                 [:soleado 25 40 :si :-])))
 
+;; Ejercicio 2.13 - tests
 
+(def metadatos (first ejemplos))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+(assert
+ (= [[[*][*][*][*] [*] [*] [*]]]
+    (generalizaciones-CL [[:soleado :niebla :nublado :lluvioso][*][*][*] [*] [*] [*]]
+                         metadatos
+                         [:diluvia 20 90 :si :contento :relajado :ajustado :+])))
+(assert
+ (= [[[*] [[19] [20]] [[15] [90]] [*] [*] [*] [*]]]
+    (generalizaciones-CL [[*][19][15][*] [*] [*] [*]]
+                         metadatos
+                         [:diluvia 20 90 :si :contento :relajado :ajustado :+])))
+(assert
+ (= [[[*] [*] [*] [:si] [*] [*] [*]]]
+    (generalizaciones-CL [[*][*][*][:si] [*] [*] [*]]
+                         metadatos
+                         [:diluvia 20 90 :si :contento :relajado :ajustado :+])))
+(assert
+ (= [[[*] [*] [*] [*] [*] [*] [*]]]
+    (generalizaciones-CL [[*][*][*][*] [:triste :normal] [*] [*]]
+                         metadatos
+                         [:diluvia 20 90 :si :contento :relajado :ajustado :+])))
+(assert
+ (= [[[*] [*] [*] [*] [*] [*] [*]]]
+    (generalizaciones-CL [[*][*][*][*] [*] [:relajado :normal ] [*]]
+                         metadatos
+                         [:diluvia 20 90 :si :contento :estresado :ajustado :+])))
+(assert
+ (= [[[*] [*] [*] [*] [*] [*] [*]]]
+    (generalizaciones-CL [[*][*][*][*] [*] [*] [:ajustado :insuficiente]]
+                         metadatos
+                         [:diluvia 20 90 :si :contento :estresado :solvente :+])))
