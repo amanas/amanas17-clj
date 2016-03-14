@@ -84,9 +84,11 @@
         (= [:+inf] b)        (normalize-numerico [a :+inf])
         (= [:-inf :+inf] t)  [*]
         (nil? b)             (normalize-numerico [a a])
-        (every? coll? [a b]) (cond (comp= (first a) (first b)) [(first a) (first b)]
-                                   (comp< (first a) (first b)) t
-                                   :else                       [])
+        (every? coll? [a b]) (if (comp<= (first a) (first b)) t [])
+        (every? (comp not coll?)
+                [a b])       (cond  (comp= a b) [[a] [b]]
+                                    (comp< a b) t
+                                    :else [])
         (coll? a)            (if (comp< (first a) b) t [])
         (coll? b)            (if (comp< a (first b)) t [])
         (comp<= a b)         t

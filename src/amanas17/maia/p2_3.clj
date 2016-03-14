@@ -56,10 +56,8 @@
             (let [[a b :as t] (normalize-numerico test)
                   gener (cond (= [] t) [atributo]
                               (= [*] t) test
-                              (extremo<= atributo a) (normalize-numerico [[atributo]
-                                                                          (if (= a b) [b] b)])
-                              (extremo<= b atributo) (normalize-numerico [(if (= a b) [a] a)
-                                                                          [atributo]])
+                              (extremo<= atributo a) (normalize-numerico [[atributo] b])
+                              (extremo<= b atributo) (normalize-numerico [a [atributo]])
                               :else test)]
               (concat (take indice-atributo concepto-CL)
                       [gener]
