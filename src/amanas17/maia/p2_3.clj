@@ -87,10 +87,8 @@
 
 (defn cartesian-product [colls]
   "Devuelve el producto cartesiano de una lista de listas"
-  (if (empty? colls)
-    [[]]
-    (for [x (first colls)
-          more (cartesian-product (rest colls))]
+  (if (empty? colls) [[]]
+    (for [x (first colls) more (cartesian-product (rest colls))]
       (cons x more))))
 
 (defn incluye-atributo-nominal
@@ -109,9 +107,7 @@
   ([concepto-CL metadatos ejemplo indice]
    (if (= :numerico (second (nth metadatos indice)))
      [(nth (generalizacion-atributo-numerico concepto-CL indice ejemplo) indice)]
-     (let [_ (clojure.pprint/pprint  concepto-CL)
-           concepto-CL (incluye-atributo-nominal concepto-CL indice ejemplo metadatos)
-           _ (clojure.pprint/pprint  concepto-CL)
+     (let [concepto-CL (incluye-atributo-nominal concepto-CL indice ejemplo metadatos)
            test (nth concepto-CL indice)
            atributo (nth ejemplo indice)
            geners (if (match-nominal? test atributo)
