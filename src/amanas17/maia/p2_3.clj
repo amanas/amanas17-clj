@@ -91,25 +91,6 @@
     (for [x (first colls) more (cartesian-product (rest colls))]
       (cons x more))))
 
-(defn incluye-atributo-nominal
-  [concepto-CL indice ejemplo metadatos]
-  (let [test (nth concepto-CL indice)]
-    (if (= [*] test) concepto-CL
-      (let [atribs (distinct (conj test (nth ejemplo indice)))
-            new-test (if (= (count atribs) (count (second (nth metadatos indice)))) [*] atribs)]
-        (concat (take indice concepto-CL) [new-test] (drop (inc indice) concepto-CL))))))
-
-
-(defn generalizaciones-ejemplo-nominal
- [concepto-CL indice metadatos ejemplo]
- (let [test (nth concepto-CL indice)
-       atrib (nth ejemplo indice)
-       atribs (second (nth metadatos indice))]
-   (if (= [*] test) [concepto-CL]
-       (let [test (distinct (conj test atrib))
-             concepto-CL (concat (take indice concepto-CL) [test] (drop (inc indice) concepto-CL))]
-         (generalizaciones-atributo-nominal concepto-CL indice metadatos)))))
-
 ;; Ejercicio 2.13
 (defn generalizaciones-CL
   "Devuelve el conjunto total de generalizaciones inmediatas (respecto a todos los
@@ -117,25 +98,13 @@
   ([concepto-CL metadatos ejemplo indice]
    (if (= :numerico (second (nth metadatos indice)))
      [(generalizacion-atributo-numerico concepto-CL indice ejemplo)]
-     (generalizaciones-ejemplo-nominal concepto-CL indice metadatos ejemplo)))
+     (generalizaciones-atributo-nominal concepto-CL indice metadatos)))
   ([concepto-CL metadatos ejemplo]
-   (if (= :- (last ejemplo))
-     [concepto-CL]
+   (if (= :- (last ejemplo)) [concepto-CL]
      (distinct (cartesian-product
                 (for [i (range (dec (count metadatos)))]
                   (map (fn [g] (nth g i))
                        (generalizaciones-CL concepto-CL metadatos ejemplo i))))))))
-
-
-(defn especializaciones-ejemplo-nominal
- [concepto-CL indice metadatos ejemplo]
- (let [test (nth concepto-CL indice)
-       atrib (nth ejemplo indice)
-       atribs (second (nth metadatos indice))]
-   (if (= [] test) [concepto-CL]
-       (let [test (remove (partial = atrib) (if (= [*] test) atribs test))
-             concepto-CL (concat (take indice concepto-CL) [test] (drop (inc indice) concepto-CL))]
-         (especializaciones-atributo-nominal concepto-CL indice metadatos)))) )
 
 ;; Ejercicio 2.14
 (defn especializaciones-CL
@@ -144,10 +113,9 @@
   ([concepto-CL metadatos ejemplo indice]
    (if (= :numerico (second (nth metadatos indice)))
      (especializaciones-atributo-numerico concepto-CL indice ejemplo)
-     (especializaciones-ejemplo-nominal concepto-CL indice metadatos ejemplo)))
+     (especializaciones-atributo-nominal concepto-CL indice metadatos)))
   ([concepto-CL metadatos ejemplo]
-   (if (= :+ (last ejemplo))
-     [concepto-CL]
+   (if (= :+ (last ejemplo)) [concepto-CL]
      (distinct (cartesian-product
                 (for [i (range (dec (count metadatos)))]
                   (map (fn [g] (nth g i))
