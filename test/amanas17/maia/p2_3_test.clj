@@ -67,15 +67,30 @@
                          metadatos
                          [:diluvia 20 90 :si :contento :relajado :ajustado :+])))
 (assert
+ (= [[[:soleado :niebla :nublado :lluvioso][*][*][*] [*] [*] [*]]]
+    (generalizaciones-CL [[:soleado :niebla :nublado :lluvioso][*][*][*] [*] [*] [*]]
+                         metadatos
+                         [:diluvia 20 90 :si :contento :relajado :ajustado :-])))
+(assert
  (= [[[*] [[19] [20]] [[15] [90]] [*] [*] [*] [*]]]
     (generalizaciones-CL [[*][19][15][*] [*] [*] [*]]
+                         metadatos
+                         [:diluvia 20 90 :si :contento :relajado :ajustado :+])))
+(assert
+ (= [[[*] [19] [15] [*] [*] [*] [*]]]
+    (generalizaciones-CL [[*][19][15][*] [*] [*] [*]]
+                         metadatos
+                         [:diluvia 20 90 :si :contento :relajado :ajustado :-])))
+(assert
+ (= [[[*] [*] [*] [*] [*] [*] [*]]]
+    (generalizaciones-CL [[*][*][*][:si] [*] [*] [*]]
                          metadatos
                          [:diluvia 20 90 :si :contento :relajado :ajustado :+])))
 (assert
  (= [[[*] [*] [*] [:si] [*] [*] [*]]]
     (generalizaciones-CL [[*][*][*][:si] [*] [*] [*]]
                          metadatos
-                         [:diluvia 20 90 :si :contento :relajado :ajustado :+])))
+                         [:diluvia 20 90 :si :contento :relajado :ajustado :-])))
 (assert
  (= [[[*] [*] [*] [*] [*] [*] [*]]]
     (generalizaciones-CL [[*][*][*][*] [:triste :normal] [*] [*]]
@@ -87,7 +102,17 @@
                          metadatos
                          [:diluvia 20 90 :si :contento :estresado :ajustado :+])))
 (assert
+ (= [[[*] [*] [*] [*] [*] [:relajado :normal] [*]]]
+    (generalizaciones-CL [[*][*][*][*] [*] [:relajado :normal ] [*]]
+                         metadatos
+                         [:diluvia 20 90 :si :contento :estresado :ajustado :-])))
+(assert
  (= [[[*] [*] [*] [*] [*] [*] [*]]]
     (generalizaciones-CL [[*][*][*][*] [*] [*] [:ajustado :insuficiente]]
                          metadatos
                          [:diluvia 20 90 :si :contento :estresado :solvente :+])))
+(assert
+ (= [[[*] [*] [*] [*] [*] [*] [:ajustado :insuficiente]]]
+    (generalizaciones-CL [[*][*][*][*] [*] [*] [:ajustado :insuficiente]]
+                         metadatos
+                         [:diluvia 20 90 :si :contento :estresado :solvente :-])))
