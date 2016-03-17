@@ -41,42 +41,39 @@
 ;; Ejercicio 2.11
 (defn generalizacion-atributo-numerico
   "** Objetivo: el nuevo concepto cubre el ejemplo si es positivo **
-  En el caso de que el ejemplo sea negativo o el concepto-CL ya cubra el ejemplo
-  en el atributo referenciado por indice-atributo, devuelve el concepto-CL
-  tal cual lo recibe.
-  En el caso de que el ejemplo sea positivo y el concepto-CL no cubra el ejemplo
-  en el atributo referenciado por indice-atributo, devuelve la generalición
-  inmediata del concepto-CL que si cubre el ejemplo en el atributo referenciado
-  por indice-atributo."
+  Devuelve la generalición inmediata de <concepto-CL> que sí cubre
+  <ejemplo> en el atributo referenciado por <indice-atributo>.
+  Si <ejemplo> es negativo o <concepto-CL> ya satisface el ejemplo
+  en el atributo referenciado por <indice-atributo>, devuelve el concepto
+  tal cual lo recibe."
   [concepto-CL indice-atributo ejemplo]
   (if (= :- (last ejemplo)) concepto-CL
-      (let [test (nth concepto-CL indice-atributo)
-            atributo (nth ejemplo indice-atributo)]
-        (if (match-numerico? test atributo) concepto-CL
-            (let [[a b :as t] (normalize-numerico test)
-                  gener (cond (= [] t) [atributo]
-                              (= [*] t) test
-                              (extremo<= atributo a) (normalize-numerico [[atributo] b])
-                              (extremo<= b atributo) (normalize-numerico [a [atributo]])
-                              :else test)]
-              (concat (take indice-atributo concepto-CL)
-                      [gener]
-                      (drop (inc indice-atributo) concepto-CL)))))))
+    (let [test (nth concepto-CL indice-atributo)
+          atributo (nth ejemplo indice-atributo)]
+      (if (match-numerico? test atributo) concepto-CL
+        (let [[a b :as t] (normalize-numerico test)
+              gener (cond (= [] t) [atributo]
+                          (= [*] t) test
+                          (extremo<= atributo a) (normalize-numerico [[atributo] b])
+                          (extremo<= b atributo) (normalize-numerico [a [atributo]])
+                          :else test)]
+          (concat (take indice-atributo concepto-CL)
+                  [gener]
+                  (drop (inc indice-atributo) concepto-CL)))))))
 
 ;; Ejercicio 2.12
 (defn especializaciones-atributo-numerico
   "** Objetivo: el nuevo concepto rechaza el ejemplo si es negativo **
-  En el caso de que el ejemplo sea positivo o el concepto-CL no cubra el ejemplo
-  en el atributo referenciado por indice-atributo, devuelve el concepto-CL
-  tal cual lo recibe.
-  En el caso de que el ejemplo sea negativo y el concepto-CL si cubra el ejemplo
-  en el atributo referenciado por indice-atributo, devuelve una lista
-  con las especializaciones inmediata del concepto-CL que en el atributo
-  referenciado por indice-atributo."
+  Devuelve una lista con las especializaciones inmediatas de <concepto-CL>
+  que no cubren el <ejemplo> en el atributo referenciado por <indice-atributo>
+  cuando el ejemplo es negativo.
+  Si <ejemplo> es positivo o <concepto-CL> no cubre el ejemplo en el atributo
+  referenciado por indice-atributo, devuelve una lista cuyo único elemento es
+  <concepto-CL>."
   [concepto-CL indice-atributo ejemplo]
   (if (= :+ (last ejemplo)) [concepto-CL]
     (let [test (nth concepto-CL indice-atributo)]
-      (if (not (match-numerico? test atributo)) [concepto-CL]
+      (if-not (match-numerico? test atributo) [concepto-CL]
         (let [[a b :as t] (normalize-numerico test)
               atributo (nth ejemplo indice-atributo)
               specs (cond (= [] t) [[]]
@@ -88,22 +85,36 @@
                                   (drop (inc indice-atributo) concepto-CL)))
                specs))))))
 
+(defn cartesian-product [colls]
+  "Devuelve el producto cartesiano de una lista de listas"
+  (if (empty? colls) [[]]
+    (for [x (first colls) more (cartesian-product (rest colls))]
+      (cons x more))))
 
+(defn incluye-atributo-nominal
+  [concepto-CL indice ejemplo metadatos]
+  (let [test (nth concepto-CL indice)]
+    (if (= [*] test) concepto-CL
+      (let [atribs (distinct (conj test (nth ejemplo indice)))
+            new-test (if (= (count atribs) (count (second (nth metadatos indice)))) [*] atribs)]
+        (concat (take indice concepto-CL) [new-test] (drop (inc indice) concepto-CL))))))
+
+;; Ejercicio 2.13
 (defn generalizaciones-CL
-  "Devuelve el conjunto total de generalizaciones inmediatas
+  "** Objetivo: los nuevos conceptos cubren el ejemplo si es positivo **
+  Devuelve el conjunto total de generalizaciones inmediatas
   (respecto a todos los atributos) de concepto-CL para el ejemplo"
-  [concepto-CL metadatos ejemplo]
-  (loop [conceptos [concepto-CL]
-         index 0]
-    (if (< index (dec (count metadatos)))
-      (let [atributo (nth ejemplo index)
-            numerico? (= :numerico (second (nth metadatos index)))
-            gen-nom (fn [c] (if (match-CL c (butlast ejemplo))
-                             [c]
-                             (generalizaciones-atributo-nominal c index metadatos)))
-            gen-num (fn [c] (generalizacion-atributo-numerico c index ejemplo))
-            conceptos (if numerico?
-                        (map gen-num conceptos)
-                        (apply concat (map gen-nom conceptos)))]
-        (recur conceptos (inc index)))
-      conceptos)))
+  ([concepto-CL metadatos ejemplo indice]
+   (if (= :numerico (second (nth metadatos indice)))
+     [(nth (generalizacion-atributo-numerico concepto-CL indice ejemplo) indice)]
+     (let [concepto-CL (incluye-atributo-nominal concepto-CL indice ejemplo metadatos)
+           test (nth concepto-CL indice)
+           atributo (nth ejemplo indice)
+           geners (if (match-nominal? test atributo)
+                    [concepto-CL]
+                    (generalizaciones-atributo-nominal concepto-CL indice metadatos))]
+       (map (fn[g] (nth g indice)) geners))))
+  ([concepto-CL metadatos ejemplo]
+   (->> metadatos count range butlast
+        (map (partial generalizaciones-CL concepto-CL metadatos ejemplo))
+        cartesian-product)))
