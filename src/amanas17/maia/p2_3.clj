@@ -133,7 +133,7 @@
        atrib (nth ejemplo indice)
        atribs (second (nth metadatos indice))]
    (if (= [] test) [concepto-CL]
-       (let [test (distinct (remove (partial = atrib) (if (= [*] test) atribs test)))
+       (let [test (remove (partial = atrib) (if (= [*] test) atribs test))
              concepto-CL (concat (take indice concepto-CL) [test] (drop (inc indice) concepto-CL))]
          (especializaciones-atributo-nominal concepto-CL indice metadatos)))) )
 
