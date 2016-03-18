@@ -79,7 +79,4 @@
         (and (concepto-CL>= c1 c2) (not (concepto-CL>= c2 c1)))  1
         (and (not (concepto-CL>= c1 c2)) (concepto-CL>= c2 c1)) -1))
 
-(defn concepto-CL= [c1 c2] (and (concepto-CL>= c1 c2) (concepto-CL>= c2 c1)))
-(defn concepto-CL<= [c1 c2] (and (concepto-CL>= c1 c2) (concepto-CL>= c2 c1)))
-
 (he-tardado 60 2.8)
