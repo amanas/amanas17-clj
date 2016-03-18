@@ -1,6 +1,5 @@
 (ns amanas17.maia.p1-1-test
-  (:require [clojure.test :refer :all]
-            [amanas17.maia.p1-1 :refer :all]))
+  (:use [amanas17.maia.p1-1]))
 
 
 ;; Ejercicio 1.2 - tests

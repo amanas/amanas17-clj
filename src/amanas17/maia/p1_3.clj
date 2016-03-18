@@ -1,5 +1,6 @@
 (ns amanas17.maia.p1-3
-  (:require [amanas17.maia.p1-1 :refer :all]))
+  (:use [amanas17.maia.symbols]
+        [amanas17.maia.p1-1]))
 
 ;; Ejercicio 1.8
 (defn leer-ejemplos [f]
@@ -24,7 +25,7 @@
 
 ;; Por qué debemos escribir 'perspectiva y no simplemente perspectiva?
 ;; Porque referenciamos un símbolo, no una variable definida previamente.
-;; En clojure utilizamos 'perspectiva o :perspectiva
+;; En clojure utilizamos 'perspectiva o perspectiva
 
 ;; Ejercicio 1.11
 (defn mezclar

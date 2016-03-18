@@ -1,8 +1,9 @@
 (ns amanas17.maia.p1-9
-  (:require [amanas17.maia.p1-1 :refer :all]
-            [amanas17.maia.p1-3 :refer :all]
-            [amanas17.maia.p1-4 :refer :all]
-            [amanas17.maia.p1-5 :refer :all]))
+  (:use [amanas17.maia.symbols]
+        [amanas17.maia.p1-1]
+        [amanas17.maia.p1-3]
+        [amanas17.maia.p1-4]
+        [amanas17.maia.p1-5]))
 
 ;; Ejercicio 1.20
 (def concepto-inicial [[:+ 0] [:- 0]])

@@ -1,7 +1,7 @@
 (ns amanas17.maia.p1-5-test
-  (:require [clojure.test :refer :all]
-            [amanas17.maia.p1-3 :refer :all]
-            [amanas17.maia.p1-5 :refer :all]))
+  (:use [amanas17.maia.symbols]
+        [amanas17.maia.p1-3]
+        [amanas17.maia.p1-5]))
 
 
 ;; Ejercicio 1.16 - tests

@@ -1,5 +1,6 @@
 (ns amanas17.maia.p2-2
-  (:use [amanas17.maia.p1-1]
+  (:use [amanas17.maia.symbols]
+        [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
         [amanas17.maia.p2-1]))
 
@@ -8,14 +9,14 @@
   "Indica si un test ambivalente es más general o de la misma categoría
   que otro"
   [test1 test2]
-  (or (= [*] test1)
+  (or (= [:*] test1)
       (= [] test2)))
 
 (defn extremo<=
   "Compara extremos de intervalos"
   [a b]
-  (cond (= :-inf a)          true
-        (= :+inf b)          true
+  (cond (= -inf a)          true
+        (= +inf b)          true
         (every? coll? [a b]) (comp<= (first a) (first b))
         (coll? a)            (comp<= (first a) b)
         (coll? b)            (comp< a (first b))
@@ -27,7 +28,7 @@
   (let [[a b :as t1] (normalize-numerico t1)
         [c d :as t2] (normalize-numerico t2)]
     (or (= [] t1)
-        (= [*] t2)
+        (= [:*] t2)
         (and (extremo<= c a)
              (extremo<= b d)))))
 

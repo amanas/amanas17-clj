@@ -1,5 +1,6 @@
 (ns amanas17.maia.p2-4
-  (:use [amanas17.maia.p1-1]
+  (:use [amanas17.maia.symbols]
+        [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
         [amanas17.maia.p2-1]
         [amanas17.maia.p2-2]
@@ -74,6 +75,6 @@
     (rand-nth egs0)))
 
 
-;(clojure.pprint/pprint)
-;(take 5)
+                                        ;(clojure.pprint/pprint)
+                                        ;(take 5)
 (EGS ejemplos)
