@@ -163,7 +163,7 @@
   atributos de un conjunto de datos.
   Metadatos se entiende que es la cabecera de descripción de atributos"
   [metadatos]
-  (repeat (dec (count metadatos)) [*]))
+  (vec (replicate (dec (count metadatos)) [*])))
 
 (he-tardado 20 2.4)
 
