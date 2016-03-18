@@ -9,7 +9,7 @@
   "Indica si un test ambivalente es más general o de la misma categoría
   que otro"
   [test1 test2]
-  (or (= [:*] test1)
+  (or (= [**] test1)
       (= [] test2)))
 
 (defn extremo<=
@@ -28,7 +28,7 @@
   (let [[a b :as t1] (normalize-numerico t1)
         [c d :as t2] (normalize-numerico t2)]
     (or (= [] t1)
-        (= [:*] t2)
+        (= [**] t2)
         (and (extremo<= c a)
              (extremo<= b d)))))
 

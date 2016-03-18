@@ -5,10 +5,10 @@
         [amanas17.maia.p2-2]))
 
 ;; Ejercicio 2.6 - tests
-(assert (and (test-ambivalente>= [:*] [:*])
-             (test-ambivalente>= [:*] [])
+(assert (and (test-ambivalente>= [**] [**])
+             (test-ambivalente>= [**] [])
              (test-ambivalente>= [] [])
-             (not (test-ambivalente>= [] [:*]))))
+             (not (test-ambivalente>= [] [**]))))
 
 (assert (and (test-numerico>= [1 2] [3 4])
              (test-numerico>= [1 4] [2 3])
@@ -36,7 +36,7 @@
              (not (test-nominal>= [] [:a]))
              (test-nominal>= [:a] [])))
 
-(assert (and (test-CL>= [:*] [:*])
+(assert (and (test-CL>= [**] [**])
              (test-CL>= [lluvioso] [soleado])
              (test-CL>= [lluvioso] [])
              (not (test-CL>=  []   [lluvioso]))

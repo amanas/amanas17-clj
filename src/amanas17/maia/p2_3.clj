@@ -12,7 +12,7 @@
   [concepto-CL indice-atributo metadatos]
   (let [test (let [t (nth concepto-CL indice-atributo)
                    atribs (second (nth metadatos indice-atributo))]
-               (if (= [:*] t) atribs t))
+               (if (= [**] t) atribs t))
         tests (map (fn [v] (remove #{v} test)) test)
         tests (if (empty? tests) [[]] tests)]
     (map (partial assoc concepto-CL indice-atributo) tests)))
@@ -27,8 +27,8 @@
   (let [test (nth concepto-CL indice-atributo)
         attribute-values (second (nth metadatos indice-atributo))
         remaining-values (remove (partial match-nominal? test) attribute-values)
-        tests (cond (empty? remaining-values) [[:*]]
-                    (= 1 (count remaining-values)) [[:*]]
+        tests (cond (empty? remaining-values) [[**]]
+                    (= 1 (count remaining-values)) [[**]]
                     :else (map (partial conj test) remaining-values))]
     (map (partial assoc concepto-CL indice-atributo) tests)))
 
@@ -41,13 +41,13 @@
    Si el ejemplo es negativo o el concepto ya incluye el ejemplo, devuelve el
    concepto tal cual lo recibe."
   [concepto-CL indice-atributo ejemplo]
-  (if (= :- (last ejemplo)) concepto-CL
+  (if (= -- (last ejemplo)) concepto-CL
       (let [test (nth concepto-CL indice-atributo)
             atributo (nth ejemplo indice-atributo)]
         (if (match-numerico? test atributo) concepto-CL
             (let [[a b :as t] (normalize-numerico test)
                   gener (cond (= [] t) [atributo]
-                              (= [:*] t) test
+                              (= [**] t) test
                               (extremo<= atributo a) (normalize-numerico [[atributo] b])
                               (extremo<= b atributo) (normalize-numerico [a [atributo]])
                               :else test)]
@@ -60,13 +60,13 @@
    Si el ejemplo es positivo o el concepto ya excluye el ejemplo, devuelve una lista
    cuyo único elemento es el concepto."
   [concepto-CL indice-atributo ejemplo]
-  (if (= :+ (last ejemplo)) [concepto-CL]
+  (if (= ++ (last ejemplo)) [concepto-CL]
       (let [test (nth concepto-CL indice-atributo)]
         (if-not (match-numerico? test atributo) [concepto-CL]
                 (let [[a b :as t] (normalize-numerico test)
                       atributo (nth ejemplo indice-atributo)
                       specs (cond (= [] t) [[]]
-                                  (= [:*] t) [[-inf atributo] [atributo +inf]]
+                                  (= [**] t) [[-inf atributo] [atributo +inf]]
                                   :else [(normalize-numerico [a atributo])
                                          (normalize-numerico [atributo b])])]
                   (map (partial assoc concepto-CL indice-atributo) specs))))))
@@ -88,7 +88,7 @@
      [(generalizacion-atributo-numerico concepto-CL indice ejemplo)]
      (generalizaciones-atributo-nominal concepto-CL indice metadatos)))
   ([concepto-CL metadatos ejemplo]
-   (if (= :- (last ejemplo)) [concepto-CL]
+   (if (= -- (last ejemplo)) [concepto-CL]
        (cartesian-product
         (for [i (range (dec (count metadatos)))]
           (map (fn [g] (nth g i))
@@ -104,7 +104,7 @@
      (especializaciones-atributo-numerico concepto-CL indice ejemplo)
      (especializaciones-atributo-nominal concepto-CL indice metadatos)))
   ([concepto-CL metadatos ejemplo]
-   (if (= :+ (last ejemplo)) [concepto-CL]
+   (if (= ++ (last ejemplo)) [concepto-CL]
        (cartesian-product
         (for [i (range (dec (count metadatos)))]
           (map (fn [e] (nth e i))

@@ -5,10 +5,10 @@
 
 
 ;; Ejercicio 1.20 - tests
-(assert (= [[:- 0] [:+ 1]]
-           (IIA1 (first ejemplos) concepto-inicial [nublado 25 80 no :+])))
+(assert (= [[-- 0] [++ 1]]
+           (IIA1 (first ejemplos) concepto-inicial [nublado 25 80 no ++])))
 
 
 ;; Ejercicio 1.21 - tests
-(assert (= [[:- 13] [:+ 7]]
+(assert (= [[-- 13] [++ 7]]
            (IA1 ejemplos)))

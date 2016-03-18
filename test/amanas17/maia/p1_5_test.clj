@@ -13,5 +13,5 @@
 (assert (= error2-A0-A0i 2/5))
 
 ;; Ejercicio 1.18 - tests
-(assert  (= (A1 ejemplos) [[:+ 7] [:- 13]]))
+(assert  (= (A1 ejemplos) [[++ 7] [-- 13]]))
 (prn "One classification" (clasifica-con-A1-A1i ejemplos2))

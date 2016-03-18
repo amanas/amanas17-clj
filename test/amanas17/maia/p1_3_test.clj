@@ -7,7 +7,7 @@
 (assert (= 21 (count ejemplos)))
 
 ;; Ejercicio 1.9 - tests
-(assert (let [x [diluvia 29 80 :fuerte contento normal ajustado :- ]
+(assert (let [x [diluvia 29 80 :fuerte contento normal ajustado -- ]
               result (anadir-ejemplo ejemplos x)]
           (and (= 22 (count result))
                (= x (last result)))))
@@ -23,9 +23,9 @@
                     [animo [contento normal triste]]
                     [estres [relajado normal estresado]]
                     [dinero [solvente ajustado insuficiente]]
-                    [clase [:+ :-]]]
+                    [clase [++ --]]]
               xs2 [atts
-                   [diluvia 29 80 :fuerte contento normal ajustado :- ]]
+                   [diluvia 29 80 :fuerte contento normal ajustado -- ]]
               m (mezclar ejemplos xs2)]
           (and (= ejemplos (butlast m))
                (= (second xs2) (last m)))))

@@ -66,8 +66,8 @@
    tomando el concepto más específico como CSET y el más general como HSET"
   [ejemplos]
   (let [meta (first ejemplos)
-        ejemplos+ (remove (partial = :-) (rest ejemplos))
-        ejemplos- (remove (partial = :-) (rest ejemplos))
+        ejemplos+ (remove (partial = --) (rest ejemplos))
+        ejemplos- (remove (partial = --) (rest ejemplos))
         [one & more :as egs0] (EGS0 (cons meta  ejemplos+)
                                     (cons meta ejemplos-)
                                     []

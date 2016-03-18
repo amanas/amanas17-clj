@@ -11,7 +11,7 @@
   a un atributo numérico o nominal"
   [test]
   (or (= [] test)
-      (= [:*] test)))
+      (= [**] test)))
 
 (defn test-numerico?
   "Determina si un test es aplicable a un atributo numérico"
@@ -44,7 +44,7 @@
 (defn match-ambivalente?
   "Determina si un atributo satisface un test ambivalente"
   [test atributo]
-  (= [:*] test))
+  (= [**] test))
 
 (defn match-nominal?
   "Determina si un atributo nominal satisface un test nominal"
@@ -73,7 +73,7 @@
   Ésta función los encapsula en una estructura común que puede adoptar
   cualquiera de estas formas:
   - []
-  - [:*]
+  - [**]
   - [a b]
   - [[a] b]
   - [a [b]]
@@ -81,10 +81,10 @@
   siendo a y b números o -inf, +inf"
   [[a b :as t]]
   (cond (= [] t)             []
-        (= [:*] t)            [:*]
+        (= [**] t)            [**]
         (= [-inf] a)        (normalize-numerico [-inf b])
         (= [+inf] b)        (normalize-numerico [a +inf])
-        (= [-inf +inf] t)  [:*]
+        (= [-inf +inf] t)  [**]
         (nil? b)             (normalize-numerico [a a])
         (every? coll? [a b]) (if (comp<= (first a) (first b)) t [])
         (every? (comp not coll?)
@@ -138,7 +138,7 @@
 (defn CLi
   "Intérprete basado en conjunciones lógicas"
   [concepto ejemplo-sin-clase]
-  (concat ejemplo-sin-clase [(if (match-CL concepto ejemplo-sin-clase) :+ :-)]))
+  (concat ejemplo-sin-clase [(if (match-CL concepto ejemplo-sin-clase) ++ --)]))
 
 (he-tardado 45 2.2)
 
@@ -149,7 +149,7 @@
 ;; incluyentes y excluyentes.
 
 ;; Como mis ejemplos tienen 7 atributos más la clase, debería ser
-(def concepto-mas-general-posible [[:*] [:*] [:*] [:*] [:*] [:*] [:*]])
+(def concepto-mas-general-posible [[**] [**] [**] [**] [**] [**] [**]])
 (def concepto-mas-especifico-posible [[] [] [] [] [] [] []])
 ;; Un concepto que para mí podría suponer un buen día para salir al campo es
 (def concepto-mas-cercano-para-mi [[soleado]
@@ -157,7 +157,7 @@
                                    [60 80]
                                    [:brisa no]
                                    [contento normal]
-                                   [:*]
+                                   [**]
                                    [solvente ajustado]])
 
 (he-tardado 20 2.3)
@@ -168,7 +168,7 @@
   atributos de un conjunto de datos.
   Metadatos se entiende que es la cabecera de descripción de atributos"
   [metadatos]
-  (vec (replicate (dec (count metadatos)) [:*])))
+  (vec (replicate (dec (count metadatos)) [**])))
 
 (he-tardado 20 2.4)
 
