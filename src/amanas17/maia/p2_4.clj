@@ -55,26 +55,27 @@
                 (if (nil? h) NEWSET
                     (recur more
                            (loop [[s & more] (specializations-matching-less-than h nSET meta)
-                                  NEWSET NEWSET]
-                             (cond (nil? s) NEWSET
-                                   (none-more-general? CSET s) (recur more (cons s NEWSET))
-                                   :else (recur more NEWSET))))))]
+                                  newSET NEWSET]
+                             (cond (nil? s) newSET
+                                   (none-more-general? CSET s) (recur more (cons s newSET))
+                                   :else (recur more newSET))))))]
           (EGS0 PSET NSET CSET NEWSET)))))
+(into [1 2] [3])
 
 (defn EGS
   "Devuelve un concepto al azar con EGS0 de aplicado a los ejemplos
    tomando el concepto más específico como CSET y el más general como HSET"
   [ejemplos]
   (let [meta (first ejemplos)
-        ejemplos+ (remove (partial = --) (rest ejemplos))
-        ejemplos- (remove (partial = --) (rest ejemplos))
-        [one & more :as egs0] (EGS0 (cons meta  ejemplos+)
+        ejemplos+ (remove (fn [e] (= -- (last e))) (rest ejemplos))
+        ejemplos- (remove (fn [e] (= ++ (last e))) (rest ejemplos))
+        [one & more :as egs0] (EGS0 (cons meta ejemplos+)
                                     (cons meta ejemplos-)
                                     []
                                     [(concepto-CL-mas-general meta)])]
-    (rand-nth egs0)))
+    (prn (count egs0))
+    (prn (count (nth egs0 12)))
+    (prn (first (nth egs0 12)))
+    egs0))
 
-
-                                        ;(clojure.pprint/pprint)
-                                        ;(take 5)
 (EGS ejemplos)

@@ -124,9 +124,6 @@
   "Determina si un conjunto de atributos satisfacen un conjunto de tests"
   [[& tests :as  concepto]
    [& atributos :as ejemplo-sin-clase]]
-  (prn (= (count tests) (count atributos))
-       (match-nature? [tests atributos])
-       (match? [tests atributos]))
   (and (= (count tests) (count atributos))
        (match-nature? [tests atributos])
        (match? [tests atributos])))
