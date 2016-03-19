@@ -1,5 +1,6 @@
 (ns amanas17.maia.p1-3
-  (:use [amanas17.maia.symbols]
+  (:use ;;[clojure.edn :as edn]
+        [amanas17.maia.symbols]
         [amanas17.maia.p1-1]))
 
 ;; Ejercicio 1.8
@@ -7,7 +8,6 @@
   (read-string (slurp f)))
 
 (def ejemplos (leer-ejemplos "resources/maia/ejemplos.scm"))
-
 (he-tardado 60 1.8)
 
 ;; Ejercicio 1.9

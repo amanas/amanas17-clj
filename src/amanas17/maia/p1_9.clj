@@ -6,7 +6,8 @@
         [amanas17.maia.p1-5]))
 
 ;; Ejercicio 1.20
-(def concepto-inicial [[++ 0] [-- 0]])
+(def concepto-inicial [['+ 0] ['- 0]])
+
 (defn IIA1 [descripcion-atributos concepto ejemplo]
   (let [cm (apply hash-map (flatten concepto))]
     (seq (assoc cm (last ejemplo) (inc (get cm (last ejemplo)))))))

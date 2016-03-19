@@ -36,26 +36,26 @@
 ;; ejercicio 2.11 - tests
 (assert (= [[soleado][25][20][si]]
            (generalizacion-atributo-numerico [[soleado][][20][si]] 1
-                                             [soleado 25 40 si ++])))
+                                             [soleado 25 40 si +])))
 (assert (= [[soleado][][20][si]]
            (generalizacion-atributo-numerico [[soleado][][20][si]] 1
-                                             [soleado 25 40 si --])))
+                                             [soleado 25 40 si -])))
 (assert (= [[soleado][15 30][20][si]]
            (generalizacion-atributo-numerico [[soleado][15 30][20][si]] 1
-                                             [soleado 25 40 si ++])))
+                                             [soleado 25 40 si +])))
 
 ;; Ejercicio 2.12 - tests
 (assert (= [[[**][-inf 25][20][si]]
             [[**][25 +inf][20][si]]]
            (especializaciones-atributo-numerico [[**][**][20][si]] 1
-                                                [soleado 25 40 si --])))
+                                                [soleado 25 40 si -])))
 (assert (= [[[**][**][20][si]]]
            (especializaciones-atributo-numerico [[**][**][20][si]] 1
-                                                [soleado 25 40 si ++])))
+                                                [soleado 25 40 si +])))
 
 (assert (= [[[**][10 15][20][si]]]
            (especializaciones-atributo-numerico [[**][10 15][20][si]] 1
-                                                [soleado 25 40 si --])))
+                                                [soleado 25 40 si -])))
 
 ;; Ejercicio 2.13 - tests
 
@@ -63,55 +63,55 @@
  (= [[[**][**][**][**] [**] [**] [**]]]
     (generalizaciones-CL [[soleado nublado][**][**][**] [**] [**] [**]]
                          metadatos
-                         [lluvioso 20 90 si contento relajado insuficiente ++])))
+                         [lluvioso 20 90 si contento relajado insuficiente +])))
 (assert
  (= [[[soleado lluvioso][**][**][**] [**] [**] [**]]]
     (generalizaciones-CL [[soleado lluvioso][**][**][**] [**] [**] [**]]
                          metadatos
-                         [lluvioso 20 90 si contento relajado insuficiente --])))
+                         [lluvioso 20 90 si contento relajado insuficiente -])))
 (assert
  (= [[[**] [[19] [20]] [15] [**] [**] [**] [**]]
      [[**] [19] [[15] [90]] [**] [**] [**] [**]]]
     (generalizaciones-CL [[**][19][15][**] [**] [**] [**]]
                          metadatos
-                         [lluvioso 20 90 si contento relajado insuficiente ++])))
+                         [lluvioso 20 90 si contento relajado insuficiente +])))
 (assert
  (= [[[**] [19] [15] [**] [**] [**] [**]]]
     (generalizaciones-CL [[**][19][15][**] [**] [**] [**]]
                          metadatos
-                         [lluvioso 20 90 si contento relajado insuficiente --])))
+                         [lluvioso 20 90 si contento relajado insuficiente -])))
 (assert
  (= [[[**] [**] [**] [**] [**] [**] [**]]]
     (generalizaciones-CL [[**][**][**][si] [**] [**] [**]]
                          metadatos
-                         [lluvioso 20 90 si contento relajado insuficiente ++])))
+                         [lluvioso 20 90 si contento relajado insuficiente +])))
 (assert
  (= [[[**] [**] [**] [si] [**] [**] [**]]]
     (generalizaciones-CL [[**][**][**][si] [**] [**] [**]]
                          metadatos
-                         [lluvioso 20 90 si contento relajado insuficiente --])))
+                         [lluvioso 20 90 si contento relajado insuficiente -])))
 (assert
  (= [[[**] [**] [**] [**] [**] [**] [**]]]
     (generalizaciones-CL [[**][**][**][**] [triste] [**] [**]]
                          metadatos
-                         [lluvioso 20 90 si contento relajado insuficiente ++])))
+                         [lluvioso 20 90 si contento relajado insuficiente +])))
 (assert
  (= [[[**] [**] [**] [**] [**] [**] [**]]]
     (generalizaciones-CL [[**][**][**][**] [**] [relajado] [**]]
                          metadatos
-                         [lluvioso 20 90 si contento estresado insuficiente ++])))
+                         [lluvioso 20 90 si contento estresado insuficiente +])))
 (assert
  (= [[[**] [**] [**] [**] [**] [relajado] [**]]]
     (generalizaciones-CL [[**][**][**][**] [**] [relajado] [**]]
                          metadatos
-                         [lluvioso 20 90 si contento estresado insuficiente --])))
+                         [lluvioso 20 90 si contento estresado insuficiente -])))
 (assert
  (= [[[**] [**] [**] [**] [**] [**] [**]]]
     (generalizaciones-CL [[**][**][**][**] [**] [**] [insuficiente]]
                          metadatos
-                         [lluvioso 20 90 si contento estresado solvente ++])))
+                         [lluvioso 20 90 si contento estresado solvente +])))
 (assert
  (= [[[**] [**] [**] [**] [**] [**] [insuficiente]]]
     (generalizaciones-CL [[**][**][**][**] [**] [**] [insuficiente]]
                          metadatos
-                         [lluvioso 20 90 si contento estresado solvente --])))
+                         [lluvioso 20 90 si contento estresado solvente -])))

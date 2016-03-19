@@ -34,6 +34,7 @@
        (filter pos?)
        empty?))
 
+;; Ejercicio 15
 (defn EGS0
   "Implementación del algoritmo EGS de inducción exaustiva
    de conjunciones lógicas.
@@ -70,14 +71,31 @@
    tomando el concepto más específico como CSET y el más general como HSET"
   [ejemplos]
   (let [meta (first ejemplos)
-        ejemplos+ (remove (fn [e] (= -- (last e))) (rest ejemplos))
-        ejemplos- (remove (fn [e] (= ++ (last e))) (rest ejemplos))
+        ejemplos+ (remove (fn [e] (= - (last e))) (rest ejemplos))
+        ejemplos- (remove (fn [e] (= + (last e))) (rest ejemplos))
         egs0 (EGS0 (cons meta ejemplos+)
                    (cons meta ejemplos-)
                    []
                    [(concepto-CL-mas-general meta)])]
-    (clojure.pprint/pprint egs0)
-    (prn (count egs0))
     (obtener-al-azar egs0)))
 
-(EGS ejemplos)
+;; He realizad una llamado a EGS con el conjunto de ejemplos habitual
+;; (EGS ejemplos)
+;; El resultado ha sido:
+;; [[**] [15 +inf] [**] [**] (contento) [**] [**]]
+;; Previamente, el concepto que yo tenía definido como
+;; buen día para salir el campo era:
+;; [['soleado] [20 30] [60 80] [si no] [contento] [**] [solvente]]
+;; Observo que:
+;; 1. Mi concepto de buen día para salir está incorporado en el concepto
+;;    que devuelve el algoritmo EGS
+;; 2. Sin embargo, el concepto que devuelve el algoritmo EGS es muy genérico,
+;;    no concreta casi nada ya que deja muchos atributos completamente
+;;    opcionales.
+;; Supongo que a lo largo de esta práctica veremos como perfeccionar este
+;; algoritmo (a no ser que haya algún bug en mi código, claro)
+
+(he-tardado 300 2.15)
+
+
+;; Ejercicio 16

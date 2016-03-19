@@ -25,7 +25,7 @@
   [test]
   (or (test-ambivalente? test)
       (and (not (some #{-inf +inf} test))
-           (every? (fn [v] (or (keyword? v) (symbol? v))) test))))
+           (every? (some-fn symbol? keyword?) test))))
 
 (defn match-nature?
   "Determina si un test (o array de ellos) y un atributo (o array de ellos)
@@ -38,8 +38,7 @@
   ([test atributo]
    (or (test-ambivalente? test)
        (and (test-numerico? test) (number? atributo))
-       (and (test-nominal? test) (or (symbol? atributo)
-                                     (keyword? atributo))))))
+       (and (test-nominal? test)  ((some-fn symbol? keyword?) atributo)))))
 
 (defn match-ambivalente?
   "Determina si un atributo satisface un test ambivalente"
@@ -119,6 +118,7 @@
          (test-nominal? test)  (match-nominal? test atributo)
          :else false)))
 
+; (match-CL [[soleado] [**] [10 [40]] [si]] [soleado 30 40 si])
 ;; Ejercicio 2.1
 (defn match-CL
   "Determina si un conjunto de atributos satisfacen un conjunto de tests"
@@ -135,7 +135,7 @@
 (defn CLi
   "Intérprete basado en conjunciones lógicas"
   [concepto ejemplo-sin-clase]
-  (concat ejemplo-sin-clase [(if (match-CL concepto ejemplo-sin-clase) ++ --)]))
+  (concat ejemplo-sin-clase [(if (match-CL concepto ejemplo-sin-clase) + -)]))
 
 (he-tardado 45 2.2)
 
@@ -149,7 +149,7 @@
 (def concepto-mas-general-posible [[**] [**] [**] [**] [**] [**] [**]])
 (def concepto-mas-especifico-posible [[] [] [] [] [] [] []])
 ;; Un concepto que para mí podría suponer un buen día para salir al campo es
-(def concepto-mas-cercano-para-mi [[soleado]
+(def concepto-mas-cercano-para-mi [['soleado]
                                    [20 30]
                                    [60 80]
                                    [si no]

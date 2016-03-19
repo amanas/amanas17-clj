@@ -185,7 +185,7 @@
      ((juxt (partial map first) (partial map second)))
      (map (partial apply +))
      (map #(/ % 10)))
-;; obtengo que la precisión media es 12/25 y el error medio es 13/25.
+;; obtengo que la precisión media es 2/5 y el error medio es 3/5.
 ;; Nótese que este ha sido el resultado de una ejecución cualquiera y que
 ;; cualquier otra podrá variar.
 

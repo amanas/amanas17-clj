@@ -41,7 +41,7 @@
    Si el ejemplo es negativo o el concepto ya incluye el ejemplo, devuelve el
    concepto tal cual lo recibe."
   [concepto-CL indice-atributo ejemplo]
-  (if (= -- (last ejemplo)) concepto-CL
+  (if (= - (last ejemplo)) concepto-CL
       (let [test (nth concepto-CL indice-atributo)
             atributo (nth ejemplo indice-atributo)]
         (if (match-numerico? test atributo) concepto-CL
@@ -60,7 +60,7 @@
    Si el ejemplo es positivo o el concepto ya excluye el ejemplo, devuelve una lista
    cuyo único elemento es el concepto."
   [concepto-CL indice-atributo ejemplo]
-  (if (= ++ (last ejemplo)) [concepto-CL]
+  (if (= + (last ejemplo)) [concepto-CL]
       (let [test (nth concepto-CL indice-atributo)]
         (if-not (match-numerico? test atributo) [concepto-CL]
                 (let [[a b :as t] (normalize-numerico test)
@@ -71,43 +71,36 @@
                                          (normalize-numerico [atributo b])])]
                   (map (partial assoc concepto-CL indice-atributo) specs))))))
 
-(defn cartesian-product
-  "Devuelve el producto cartesiano de una lista de listas"
-  [colls]
-  (if (empty? colls) [[]]
-      (for [x (first colls) more (cartesian-product (rest colls))]
-        (cons x more))))
-
 ;; Ejercicio 2.13
 (defn generalizaciones-CL
   "Devuelve el conjunto total de generalizaciones inmediatas (respecto a todos los
    atributos) del concepto para el ejemplo.
-   Si el ejemplo es negativo, devuelve el concepto en una lista tal cual"
+   Si el ejemplo es negativo, devuelve el concepto tal cual en una lista"
   ([concepto-CL metadatos ejemplo indice]
    (if (= numerico (second (nth metadatos indice)))
      [(generalizacion-atributo-numerico concepto-CL indice ejemplo)]
      (generalizaciones-atributo-nominal concepto-CL indice metadatos)))
   ([concepto-CL metadatos ejemplo]
-   (if (= -- (last ejemplo)) [concepto-CL]
+   (if (= - (last ejemplo)) [concepto-CL]
        (let [geners (->> (range (dec (count metadatos)))
                          (mapcat (partial generalizaciones-CL concepto-CL metadatos ejemplo))
+                         (remove (partial = concepto-CL))
                          distinct)]
          (if (empty? geners) [concepto-CL] geners)))))
-;; (cartesian-product (for [i (range (dec (count metadatos)))] (map (fn [g] (nth g i)) (generalizaciones-CL concepto-CL metadatos ejemplo i)
 
 ;; Ejercicio 2.14
 (defn especializaciones-CL
   "Devuelve el conjunto total de especializaciones inmediatas (respecto a todos los
    atributos) del concepto para el ejemplo
-   Si el ejemplo es positivo, devuelve el concepto en una lista tal cual"
+   Si el ejemplo es positivo, devuelve el concepto tal cual en una lista"
   ([concepto-CL metadatos ejemplo indice]
    (if (= numerico (second (nth metadatos indice)))
      (especializaciones-atributo-numerico concepto-CL indice ejemplo)
      (especializaciones-atributo-nominal concepto-CL indice metadatos)))
   ([concepto-CL metadatos ejemplo]
-   (if (= ++ (last ejemplo)) [concepto-CL]
+   (if (= + (last ejemplo)) [concepto-CL]
        (let [specs (->> (range (dec (count metadatos)))
                         (mapcat (partial especializaciones-CL concepto-CL metadatos ejemplo))
+                        (remove (partial = concepto-CL))
                         distinct)]
          (if (empty? specs) [concepto-CL] specs)))))
-;; (cartesian-product (for [i (range (dec (count metadatos)))] (distinct (map (fn [e] (nth e i)) specs))))
