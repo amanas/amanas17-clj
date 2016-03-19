@@ -89,10 +89,13 @@
      (generalizaciones-atributo-nominal concepto-CL indice metadatos)))
   ([concepto-CL metadatos ejemplo]
    (if (= -- (last ejemplo)) [concepto-CL]
-       (cartesian-product
-        (for [i (range (dec (count metadatos)))]
-          (map (fn [g] (nth g i))
-               (generalizaciones-CL concepto-CL metadatos ejemplo i)))))))
+       (let [geners (->> (range (dec (count metadatos)))
+                         (map (partial generalizaciones-CL concepto-CL metadatos ejemplo))
+                         (apply concat)
+                         distinct
+                         (remove (partial = concepto-CL)))]
+         (if (empty? geners) [concepto-CL] geners)))))
+;; (cartesian-product (for [i (range (dec (count metadatos)))] (map (fn [g] (nth g i)) (generalizaciones-CL concepto-CL metadatos ejemplo i)
 
 ;; Ejercicio 2.14
 (defn especializaciones-CL
@@ -105,7 +108,10 @@
      (especializaciones-atributo-nominal concepto-CL indice metadatos)))
   ([concepto-CL metadatos ejemplo]
    (if (= ++ (last ejemplo)) [concepto-CL]
-       (cartesian-product
-        (for [i (range (dec (count metadatos)))]
-          (map (fn [e] (nth e i))
-               (especializaciones-CL concepto-CL metadatos ejemplo i)))))))
+       (let [specs (->> (range (dec (count metadatos)))
+                        (map (partial especializaciones-CL concepto-CL metadatos ejemplo))
+                        (apply concat)
+                        distinct
+                        (remove (partial = concepto-CL)))]
+         (if (empty? specs) [concepto-CL] specs)))))
+;; (cartesian-product (for [i (range (dec (count metadatos)))] (map (fn [e] (nth e i)) (especializaciones-CL concepto-CL metadatos ejemplo i))))
