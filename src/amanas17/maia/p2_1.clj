@@ -152,10 +152,10 @@
 (def concepto-mas-cercano-para-mi [[soleado]
                                    [20 30]
                                    [60 80]
-                                   [:brisa no]
-                                   [contento normal]
+                                   [si no]
+                                   [contento]
                                    [**]
-                                   [solvente ajustado]])
+                                   [solvente]])
 
 (he-tardado 20 2.3)
 

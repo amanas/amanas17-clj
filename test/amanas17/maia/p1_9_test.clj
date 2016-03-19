@@ -10,5 +10,5 @@
 
 
 ;; Ejercicio 1.21 - tests
-(assert (= [[-- 13] [++ 7]]
+(assert (= [[-- 11] [++ 9]]
            (IA1 ejemplos)))
