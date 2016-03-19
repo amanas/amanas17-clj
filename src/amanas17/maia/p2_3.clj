@@ -29,7 +29,7 @@
         remaining-values (remove (partial match-nominal? test) attribute-values)
         tests (cond (empty? remaining-values) [[**]]
                     (= 1 (count remaining-values)) [[**]]
-                    :else (map (partial conj test) remaining-values))]
+                    :else (map (fn [v] (conj test v)) remaining-values))]
     (map (partial assoc concepto-CL indice-atributo) tests)))
 
 (he-tardado 60 2.10)
@@ -90,8 +90,7 @@
   ([concepto-CL metadatos ejemplo]
    (if (= -- (last ejemplo)) [concepto-CL]
        (let [geners (->> (range (dec (count metadatos)))
-                         (map (partial generalizaciones-CL concepto-CL metadatos ejemplo))
-                         (apply concat)
+                         (mapcat (partial generalizaciones-CL concepto-CL metadatos ejemplo))
                          distinct
                          (remove (partial = concepto-CL)))]
          (if (empty? geners) [concepto-CL] geners)))))
@@ -109,8 +108,7 @@
   ([concepto-CL metadatos ejemplo]
    (if (= ++ (last ejemplo)) [concepto-CL]
        (let [specs (->> (range (dec (count metadatos)))
-                        (map (partial especializaciones-CL concepto-CL metadatos ejemplo))
-                        (apply concat)
+                        (mapcat (partial especializaciones-CL concepto-CL metadatos ejemplo))
                         distinct
                         (remove (partial = concepto-CL)))]
          (if (empty? specs) [concepto-CL] specs)))))

@@ -12,3 +12,5 @@ pom.xml.asc
 .hg/
 .project
 /bin/
+.idea
+.idea/*

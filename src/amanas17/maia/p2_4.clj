@@ -6,11 +6,6 @@
         [amanas17.maia.p2-2]
         [amanas17.maia.p2-3]))
 
-(defn with
-  "Adds an element to a collection"
-  [x coll]
-  (into coll x))
-
 (defn without
   "Removes an element from a collection"
   [x coll]
@@ -19,35 +14,35 @@
 (defn count-matchings
   "Cuenta los ejemplos que incorpora el concepto"
   [concepto ejemplos]
-  (->> ejemplos (map butlast) (map (partial match-CL concepto)) (remove false?) count ))
+  (->> ejemplos (map butlast) (map (partial match-CL concepto)) (filter true?) count))
 
 (defn specs-matching-less-than
   "Devuelve las especializaciones inmediatas del concepto h que satisfacen menos
    ejemplos que el propio h"
   [h ejemplos meta]
   (let [h-matching (count-matchings h ejemplos)
+        filter-fn  (fn [s] (< (count-matchings s ejemplos) h-matching))
         specs (->> ejemplos
-                   (map (partial especializaciones-CL h meta)))]
-    (filter (fn [s] (<= (count-matchings s ejemplos) h-matching)) specs)))
+                   (mapcat (partial especializaciones-CL h meta)))]
+    (filter filter-fn specs)))
 
 (defn none-more-general?
   "Devuelve true ningún concepto de conceptos es más general que el concepto"
   [conceptos concepto]
-;  (prn "conceptos")
-;  (clojure.pprint/pprint conceptos)
-;  (prn "concepto" concepto)
-
   (->> conceptos
        (map (fn [c] (cmp-concepto-CL c concepto)))
        (filter pos?)
        empty?))
+
+(cmp-concepto-CL [[soleado lluvioso] [**] [**] [**] [contento] [**] [**]]
+                 [[**] [**] [92 +inf] [**] [**] [**] [**]])
+                                        ;(vec (soleado))
 
 (defn EGS0
   "Implementación del algoritmo EGS de inducción exaustiva
    de conjunciones lógicas.
    Asume que el primer elemento de PSET y NSET son los metadatos"
   [PSET NSET CSET HSET]
- ;; (prn "HSET11111111111111111" CSET)
   (let [meta (first PSET)
         pSET (rest PSET)
         pSEText (map butlast pSET)
@@ -60,10 +55,9 @@
                           (let [addToC? (not-any? (partial match-CL h) nSEText)
                                 delFrH? (or addToC?
                                             (not-every? (partial match-CL h) pSEText))
-                                newCSET (if addToC? (with h cSET) cSET)
+                                newCSET (if addToC? (cons h cSET) cSET)
                                 newHSET (if delFrH? (without h hSET) hSET)]
                             (recur more newCSET newHSET))))]
-;;        (prn "HSET22222222222222222" CSET)
     (if (empty? HSET) CSET
         (let [NEWSET
               (loop [[h & more] HSET
@@ -86,7 +80,6 @@
                    (cons meta ejemplos-)
                    []
                    [(concepto-CL-mas-general meta)])]
-    (prn (count egs0))
-    ;;    (prn (count (nth egs0 12)))
-    ;;  (prn (first (nth egs0 12)))
-    egs0))
+    (obtener-al-azar egs0)))
+
+(EGS ejemplos)
