@@ -76,6 +76,8 @@
   0 si c1 es estrictamente de la misma categoría que c2
   -1 si c1 es estrictamente más específico que c2"
   [c1 c2]
+  (prn "concepto 1" c1)
+  (prn "concepto 2" c2)
   (cond (and (concepto-CL>= c1 c2) (concepto-CL>= c2 c1))        0
         (and (concepto-CL>= c1 c2) (not (concepto-CL>= c2 c1)))  1
         (and (not (concepto-CL>= c1 c2)) (concepto-CL>= c2 c1)) -1))

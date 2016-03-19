@@ -6,6 +6,11 @@
         [amanas17.maia.p2-2]
         [amanas17.maia.p2-3]))
 
+(defn with
+  "Adds an element to a collection"
+  [x coll]
+  (into coll x))
+
 (defn without
   "Removes an element from a collection"
   [x coll]
@@ -16,18 +21,22 @@
   [concepto ejemplos]
   (->> ejemplos (map butlast) (map (partial match-CL concepto)) (remove false?) count ))
 
-(defn specializations-matching-less-than
+(defn specs-matching-less-than
   "Devuelve las especializaciones inmediatas del concepto h que satisfacen menos
    ejemplos que el propio h"
   [h ejemplos meta]
   (let [h-matching (count-matchings h ejemplos)
-        specs (map (partial especializaciones-CL h meta) ejemplos)
-        s-matchings (map (fn [s] (count-matchings s ejemplos)) specs)]
-    (filter (fn [s] (< (count-matchings s ejemplos) h-matching)) specs)))
+        specs (->> ejemplos
+                   (map (partial especializaciones-CL h meta)))]
+    (filter (fn [s] (<= (count-matchings s ejemplos) h-matching)) specs)))
 
 (defn none-more-general?
   "Devuelve true ningún concepto de conceptos es más general que el concepto"
   [conceptos concepto]
+;  (prn "conceptos")
+;  (clojure.pprint/pprint conceptos)
+;  (prn "concepto" concepto)
+
   (->> conceptos
        (map (fn [c] (cmp-concepto-CL c concepto)))
        (filter pos?)
@@ -38,29 +47,33 @@
    de conjunciones lógicas.
    Asume que el primer elemento de PSET y NSET son los metadatos"
   [PSET NSET CSET HSET]
+ ;; (prn "HSET11111111111111111" CSET)
   (let [meta (first PSET)
         pSET (rest PSET)
+        pSEText (map butlast pSET)
         nSET (rest NSET)
-        [HSET CSET] (loop [[h & more] HSET
-                           hSET HSET
-                           cSET CSET]
-                      (cond (nil? h) [hSET cSET]
-                            (every? (partial match-CL h) (map butlast pSET)) (recur more hSET cSET)
-                            (some (partial match-CL h) (map butlast pSET)) (recur more (without h hSET) cSET)
-                            :else (recur more (without h hSET) (cons h cSET))))]
+        nSEText (map butlast nSET)
+        [CSET HSET] (loop [[h & more] HSET
+                           cSET CSET
+                           hSET HSET]
+                      (if (nil? h) [cSET hSET]
+                          (let [addToC? (not-any? (partial match-CL h) nSEText)
+                                delFrH? (or addToC?
+                                            (not-every? (partial match-CL h) pSEText))
+                                newCSET (if addToC? (with h cSET) cSET)
+                                newHSET (if delFrH? (without h hSET) hSET)]
+                            (recur more newCSET newHSET))))]
+;;        (prn "HSET22222222222222222" CSET)
     (if (empty? HSET) CSET
         (let [NEWSET
               (loop [[h & more] HSET
-                     NEWSET []]
-                (if (nil? h) NEWSET
-                    (recur more
-                           (loop [[s & more] (specializations-matching-less-than h nSET meta)
-                                  newSET NEWSET]
-                             (cond (nil? s) newSET
-                                   (none-more-general? CSET s) (recur more (cons s newSET))
-                                   :else (recur more newSET))))))]
+                     newSET []]
+                (if (nil? h) newSET
+                    (recur more (->> (specs-matching-less-than h nSET meta)
+                                     (filter (partial none-more-general? CSET))
+                                     (concat newSET)
+                                     distinct))))]
           (EGS0 PSET NSET CSET NEWSET)))))
-(into [1 2] [3])
 
 (defn EGS
   "Devuelve un concepto al azar con EGS0 de aplicado a los ejemplos
@@ -69,13 +82,11 @@
   (let [meta (first ejemplos)
         ejemplos+ (remove (fn [e] (= -- (last e))) (rest ejemplos))
         ejemplos- (remove (fn [e] (= ++ (last e))) (rest ejemplos))
-        [one & more :as egs0] (EGS0 (cons meta ejemplos+)
-                                    (cons meta ejemplos-)
-                                    []
-                                    [(concepto-CL-mas-general meta)])]
+        egs0 (EGS0 (cons meta ejemplos+)
+                   (cons meta ejemplos-)
+                   []
+                   [(concepto-CL-mas-general meta)])]
     (prn (count egs0))
-    (prn (count (nth egs0 12)))
-    (prn (first (nth egs0 12)))
+    ;;    (prn (count (nth egs0 12)))
+    ;;  (prn (first (nth egs0 12)))
     egs0))
-
-(EGS ejemplos)
