@@ -34,10 +34,6 @@
        (filter pos?)
        empty?))
 
-(cmp-concepto-CL [[soleado lluvioso] [**] [**] [**] [contento] [**] [**]]
-                 [[**] [**] [92 +inf] [**] [**] [**] [**]])
-                                        ;(vec (soleado))
-
 (defn EGS0
   "Implementación del algoritmo EGS de inducción exaustiva
    de conjunciones lógicas.
@@ -80,6 +76,8 @@
                    (cons meta ejemplos-)
                    []
                    [(concepto-CL-mas-general meta)])]
+    (clojure.pprint/pprint egs0)
+    (prn (count egs0))
     (obtener-al-azar egs0)))
 
 (EGS ejemplos)

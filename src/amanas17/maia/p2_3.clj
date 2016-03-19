@@ -91,8 +91,7 @@
    (if (= -- (last ejemplo)) [concepto-CL]
        (let [geners (->> (range (dec (count metadatos)))
                          (mapcat (partial generalizaciones-CL concepto-CL metadatos ejemplo))
-                         distinct
-                         (remove (partial = concepto-CL)))]
+                         distinct)]
          (if (empty? geners) [concepto-CL] geners)))))
 ;; (cartesian-product (for [i (range (dec (count metadatos)))] (map (fn [g] (nth g i)) (generalizaciones-CL concepto-CL metadatos ejemplo i)
 
@@ -109,7 +108,6 @@
    (if (= ++ (last ejemplo)) [concepto-CL]
        (let [specs (->> (range (dec (count metadatos)))
                         (mapcat (partial especializaciones-CL concepto-CL metadatos ejemplo))
-                        distinct
-                        (remove (partial = concepto-CL)))]
+                        distinct)]
          (if (empty? specs) [concepto-CL] specs)))))
-;; (cartesian-product (for [i (range (dec (count metadatos)))] (map (fn [e] (nth e i)) (especializaciones-CL concepto-CL metadatos ejemplo i))))
+;; (cartesian-product (for [i (range (dec (count metadatos)))] (distinct (map (fn [e] (nth e i)) specs))))
