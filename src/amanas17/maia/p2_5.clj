@@ -16,7 +16,7 @@
 
 
 ;; Ejercicio 18
-(def beam-size 10)
+(def beam-size 5)
 
 (defn sort-by-score-desc
   [conceptos pSET nSET]
@@ -40,11 +40,9 @@
     (doall (for [H HSET]
              (do (prn "H" H)
                  (doall (for [S (mapcat (partial especializaciones-CL H meta) nSET)]
-                          (do (prn "scores [S H sS sH]" [S H (score-CL S pSEText nSEText) (score-CL H pSEText nSEText)])
-                              (when (> (score-CL S pSEText nSEText) (score-CL H pSEText nSEText))
-                                (swap! NEW-SET conj S)))))
-                 (pr "NEW-SET")
-                 (clojure.pprint/pprint @NEW-SET)
+                          (when (> (score-CL S pSEText nSEText) (score-CL H pSEText nSEText))
+                            (swap! NEW-SET conj S))))
+                 (pr "NEW-SET count" (count @NEW-SET))
                  (if (empty? @NEW-SET)
                    (swap! CLOSED-SET conj H)
                    (doall (for [S @NEW-SET]
@@ -55,8 +53,7 @@
                                            (if (> (score-CL C pSEText nSEText) (score-CL S pSEText nSEText))
                                              (swap! OPEN-SET   without S)
                                              (swap! CLOSED-SET without C))))))))))))
-    (pr "OPEN-SET")
-    (clojure.pprint/pprint @OPEN-SET)
+    (pr "OPEN-SET count" (count @OPEN-SET))
     (if (empty? @OPEN-SET)
       (first (sort-by-score-desc @CLOSED-SET pSEText nSEText))
       (let [BEST-SET (take beam-size
@@ -80,4 +77,4 @@
                    [(concepto-CL-mas-general meta)])]
     hgs0))
 
-;;(HGS ejemplos)
+(HGS ejemplos)
