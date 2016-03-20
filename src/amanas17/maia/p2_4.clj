@@ -85,10 +85,12 @@
                    (cons meta ejemplos-)
                    []
                    [(concepto-CL-mas-general meta)])]
+    (prn egs0)
     (obtener-al-azar egs0)))
 
 ;; He realizad una llamado a EGS con el conjunto de ejemplos habitual
-;; (EGS ejemplos)
+(comment (EGS ejemplos))
+
 ;; El resultado ha sido:
 ;; [[**] [15 +inf] [**] [**] (contento) [**] [**]]
 ;; Previamente, el concepto que yo tenía definido como

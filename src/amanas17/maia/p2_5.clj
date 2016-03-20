@@ -77,4 +77,4 @@
                    [(concepto-CL-mas-general meta)])]
     hgs0))
 
-(HGS ejemplos)
+(comment (HGS ejemplos))
