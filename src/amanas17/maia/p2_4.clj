@@ -23,8 +23,13 @@
   (let [h-matching (count-matchings h ejemplos)
         filter-fn  (fn [s] (< (count-matchings s ejemplos) h-matching))
         specs (->> ejemplos
-                   (mapcat (partial especializaciones-CL h meta)))]
-    (filter filter-fn specs)))
+                   (mapcat (partial especializaciones-CL h meta)))
+        filtered (filter filter-fn specs)]
+    (prn "count specs" (count specs))
+    (prn "count distinct specs" (count (distinct specs)))
+    (prn "count filter specs" (count filtered))
+    (prn "count distinct filter specs" (count (distinct filtered)))
+    filtered))
 
 (defn none-more-general?
   "Devuelve true ningún concepto de conceptos es más general que el concepto"
@@ -40,6 +45,7 @@
    de conjunciones lógicas.
    Asume que el primer elemento de PSET y NSET son los metadatos"
   [PSET NSET CSET HSET]
+  (prn "Main [CSET,HSET]="[(count CSET) (count HSET)])
   (let [meta (first PSET)
         pSET (rest PSET)
         pSEText (map butlast pSET)
@@ -48,6 +54,7 @@
         [CSET HSET] (loop [[h & more] HSET
                            cSET CSET
                            hSET HSET]
+                      (prn "First loop [cSET,hSET]="[(count cSET) (count hSET)])
                       (if (nil? h) [cSET hSET]
                           (let [addToC? (not-any? (partial match-CL h) nSEText)
                                 delFrH? (or addToC?
@@ -57,8 +64,9 @@
                             (recur more newCSET newHSET))))]
     (if (empty? HSET) CSET
         (let [NEWSET
-              (loop [[h & more] HSET
+              (loop [[h & more :as hSET] HSET
                      newSET []]
+                (prn "Second loop [hSET,newSET]="[(count hSET) (count newSET)])
                 (if (nil? h) newSET
                     (recur more (->> (specs-matching-less-than h nSET meta)
                                      (filter (partial none-more-general? CSET))
@@ -71,8 +79,8 @@
    tomando el concepto más específico como CSET y el más general como HSET"
   [ejemplos]
   (let [meta (first ejemplos)
-        ejemplos+ (remove (fn [e] (= - (last e))) (rest ejemplos))
-        ejemplos- (remove (fn [e] (= + (last e))) (rest ejemplos))
+        ejemplos+ (remove (fn [e] (= '- (last e))) (rest ejemplos))
+        ejemplos- (remove (fn [e] (= '+ (last e))) (rest ejemplos))
         egs0 (EGS0 (cons meta ejemplos+)
                    (cons meta ejemplos-)
                    []
@@ -92,10 +100,40 @@
 ;; 2. Sin embargo, el concepto que devuelve el algoritmo EGS es muy genérico,
 ;;    no concreta casi nada ya que deja muchos atributos completamente
 ;;    opcionales.
-;; Supongo que a lo largo de esta práctica veremos como perfeccionar este
-;; algoritmo (a no ser que haya algún bug en mi código, claro)
+;; Efectivamente, tal como se indica en el material de estudio, en este
+;; ejemplo practico se muestra que el resultado del algoritmo EGS tiende
+;; a ser el concepto más genérico posible que describe los ejemplos.
 
 (he-tardado 300 2.15)
 
-
 ;; Ejercicio 16
+
+;; Cargamos los ejemplos de ionosfera
+(def ionosphere (leer-ejemplos "resources/maia/ionosphere.scm"))
+;; Y lanzamos el algoritmo - lo dejo comentado para que no se lance más
+;; por accidente.
+(comment (time (EGS ionosphere)))
+;; El resultado de los logs arrojados por esta ejecución está en
+;; resources/maia/ionosphere.debug
+;; Ha tardado 72 segundos y observo que el NEWSET es generado con 3262
+;; nuevas hipótesis a comprobar.
+;; Efectivamente, en la función  specs-matching-less-than,
+;; para cada ejemplo negativo (y tenemos 126)
+(comment (->> ionosphere
+              rest
+              (map last)
+              (group-by identity)
+              (#(get % '-))
+              count))
+;; se pueden crear hasta 2 * 34 especializaciones (pues tenemos 34
+;; atributos). Es decir, un máximo de 8568. En realidad solo se acaban considerando
+;; 3262, pues muchas de ellas están repetidas en su creación.
+;; Y para cada una de ellas, hay que contar cuantos ejemplos
+;; positivos cubren. Es decir, el coste computacional de este algoritmo
+;; cuando los ejemplos y los atributos son grandes es elevádisimo.
+
+
+;; Similares reflexiones se aplican al caso
+(def agaricus-lepiota (leer-ejemplos "resources/maia/agaricus-lepiota.scm"))
+(comment (time (EGS agaricus-lepiota)))
+;; En este caso, el proceso tarda:
