@@ -12,12 +12,16 @@
              (test-numerico? [1 2])
              (test-numerico? [[1] 2])
              (test-numerico? [[1] [2]])
-             (test-numerico? [1 [2]])))
+             (test-numerico? [1 [2]])
+             (test-numerico? [-inf [2]])
+             (test-numerico? [1 +inf])))
 
 (assert (and (test-nominal? [])
              (test-nominal? [**])
              (test-nominal? [:a])
-             (test-nominal? [:a :b])))
+             (test-nominal? [:a :b])
+             (test-nominal? ['a])
+             (test-nominal? ['a 'b])))
 
 (assert (and (match-nature? [] 1)
              (match-nature? [**] 1)

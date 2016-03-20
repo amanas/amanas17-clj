@@ -17,8 +17,8 @@
   "Determina si un test es aplicable a un atributo numérico"
   [[v1 v2 :as test]]
   (or (test-ambivalente? test)
-      (and ((some-fn -inf +inf number?) (if (coll? v1) (first v1) v1))
-           ((some-fn -inf +inf number? nil?) (if (coll? v2) (first v2) v2)))))
+      (and ((fn [v] (or (= -inf v) (= +inf v) (number? v)         )) (if (coll? v1) (first v1) v1))
+           ((fn [v] (or (= -inf v) (= +inf v) (number? v) (nil? v))) (if (coll? v2) (first v2) v2)))))
 
 (defn test-nominal?
   "Determina si un test es aplicable a un atributo nominal"

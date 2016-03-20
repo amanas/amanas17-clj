@@ -8,7 +8,7 @@
 
 (defn without
   "Removes an element from a collection"
-  [x coll]
+  [coll x]
   (remove (partial = x) coll))
 
 (defn count-matchings
@@ -41,7 +41,7 @@
 
 ;; Ejercicio 15
 (defn EGS0
-  "Implementación del algoritmo EGS de inducción exaustiva
+  "Algoritmo de búsqueda exaustivo EGS, de general a específico, de inducción
    de conjunciones lógicas.
    Asume que el primer elemento de PSET y NSET son los metadatos"
   [PSET NSET CSET HSET]
@@ -59,8 +59,8 @@
                           (let [addToC? (not-any? (partial match-CL h) nSEText)
                                 delFrH? (or addToC?
                                             (not-every? (partial match-CL h) pSEText))
-                                newCSET (if addToC? (cons h cSET) cSET)
-                                newHSET (if delFrH? (without h hSET) hSET)]
+                                newCSET (if addToC? (conj    cSET h) cSET)
+                                newHSET (if delFrH? (without hSET h) hSET)]
                             (recur more newCSET newHSET))))]
     (if (empty? HSET) CSET
         (let [NEWSET
@@ -75,7 +75,7 @@
           (EGS0 PSET NSET CSET NEWSET)))))
 
 (defn EGS
-  "Devuelve un concepto al azar con EGS0 de aplicado a los ejemplos
+  "Devuelve un concepto al azar del resultado de aplicar EGS0 a los ejemplos
    tomando el concepto más específico como CSET y el más general como HSET"
   [ejemplos]
   (let [meta (first ejemplos)
@@ -137,3 +137,4 @@
 (def agaricus-lepiota (leer-ejemplos "resources/maia/agaricus-lepiota.scm"))
 (comment (time (EGS agaricus-lepiota)))
 ;; En este caso, el proceso tarda:
+;; TODO: acabar esto

@@ -65,9 +65,6 @@
 
 (he-tardado 5 2.7)
 
-(defn concepto-CL= [c1 c2] (and (concepto-CL>= c1 c2) (concepto-CL>= c2 c1)))
-(defn concepto-CL<= [c1 c2] (and (concepto-CL>= c1 c2) (concepto-CL>= c2 c1)))
-
 ;; Ejercicio 2.8
 (defn cmp-concepto-CL
   "Compara dos conceptos. Devuelve:
