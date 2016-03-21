@@ -1,30 +1,31 @@
 (ns amanas17.maia.p2-1
-  (:use [amanas17.maia.p1-1]
+  (:use [amanas17.maia.symbols]
+        [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]))
 
 ;; Por simplicidad defino los valores -infinito y +infinito como keyworkds
-;; :-inf y :+inf
+;; -inf y +inf
 
 (defn test-ambivalente?
   "Determina si un test puede ser aplicado indistintamente
   a un atributo numérico o nominal"
   [test]
   (or (= [] test)
-      (= [*] test)))
+      (= [**] test)))
 
 (defn test-numerico?
   "Determina si un test es aplicable a un atributo numérico"
   [[v1 v2 :as test]]
   (or (test-ambivalente? test)
-      (and ((some-fn :-inf :+inf number?) (if (coll? v1) (first v1) v1))
-           ((some-fn :-inf :+inf number? nil?) (if (coll? v2) (first v2) v2)))))
+      (and ((fn [v] (or (= -inf v) (= +inf v) (number? v)         )) (if (coll? v1) (first v1) v1))
+           ((fn [v] (or (= -inf v) (= +inf v) (number? v) (nil? v))) (if (coll? v2) (first v2) v2)))))
 
 (defn test-nominal?
   "Determina si un test es aplicable a un atributo nominal"
   [test]
   (or (test-ambivalente? test)
-      (and (not (some #{:-inf :+inf} test))
-           (every? keyword? test))))
+      (and (not (some #{-inf +inf} test))
+           (every? (some-fn symbol? keyword?) test))))
 
 (defn match-nature?
   "Determina si un test (o array de ellos) y un atributo (o array de ellos)
@@ -37,12 +38,12 @@
   ([test atributo]
    (or (test-ambivalente? test)
        (and (test-numerico? test) (number? atributo))
-       (and (test-nominal? test) (keyword? atributo)))))
+       (and (test-nominal? test)  ((some-fn symbol? keyword?) atributo)))))
 
 (defn match-ambivalente?
   "Determina si un atributo satisface un test ambivalente"
   [test atributo]
-  (= [*] test))
+  (= [**] test))
 
 (defn match-nominal?
   "Determina si un atributo nominal satisface un test nominal"
@@ -52,12 +53,12 @@
 
 (defn comp<=
   "Función auxiliar que permite hacer comparaciones habida cuenta de que ahora
-  :-inf y :+inf tienen que poderse comparar con números.
+  -inf y +inf tienen que poderse comparar con números.
   Sobre esta función recae en última instancia el orden parcial de los tests
   numéricos"
   [a b]
-  (cond (= :-inf a)            true
-        (= :+inf b)            true
+  (cond (= -inf a)            true
+        (= +inf b)            true
         (every? number? [a b]) (<= a b)
         :else                  false))
 (defn comp=  [a b] (and (comp<= a b) (comp<= b a)))
@@ -71,28 +72,28 @@
   Ésta función los encapsula en una estructura común que puede adoptar
   cualquiera de estas formas:
   - []
-  - [*]
+  - [**]
   - [a b]
   - [[a] b]
   - [a [b]]
   - [[a] [b]]
-  siendo a y b números o :-inf, :+inf"
+  siendo a y b números o -inf, +inf"
   [[a b :as t]]
   (cond (= [] t)             []
-        (= [*] t)            [*]
-        (= [:-inf] a)        (normalize-numerico [:-inf b])
-        (= [:+inf] b)        (normalize-numerico [a :+inf])
-        (= [:-inf :+inf] t)  [*]
+        (= [**] t)            [**]
+        (= [-inf] a)        (normalize-numerico [-inf b])
+        (= [+inf] b)        (normalize-numerico [a +inf])
+        (= [-inf +inf] t)  [**]
         (nil? b)             (normalize-numerico [a a])
         (every? coll? [a b]) (if (comp<= (first a) (first b)) t [])
         (every? (comp not coll?)
                 [a b])       (cond  (comp= a b) [[a] [b]]
                                     (comp< a b) t
                                     :else [])
-        (coll? a)            (if (comp< (first a) b) t [])
-        (coll? b)            (if (comp< a (first b)) t [])
-        (comp<= a b)         t
-        :else                []))
+                (coll? a)            (if (comp< (first a) b) t [])
+                (coll? b)            (if (comp< a (first b)) t [])
+                (comp<= a b)         t
+                :else                []))
 
 (defn match-numerico?
   "Determina si un atributo numérico satisface un test numérico"
@@ -117,6 +118,7 @@
          (test-nominal? test)  (match-nominal? test atributo)
          :else false)))
 
+; (match-CL [[soleado] [**] [10 [40]] [si]] [soleado 30 40 si])
 ;; Ejercicio 2.1
 (defn match-CL
   "Determina si un conjunto de atributos satisfacen un conjunto de tests"
@@ -133,7 +135,7 @@
 (defn CLi
   "Intérprete basado en conjunciones lógicas"
   [concepto ejemplo-sin-clase]
-  (concat ejemplo-sin-clase [(if (match-CL concepto ejemplo-sin-clase) :+ :-)]))
+  (concat ejemplo-sin-clase [(if (match-CL concepto ejemplo-sin-clase) + -)]))
 
 (he-tardado 45 2.2)
 
@@ -144,16 +146,16 @@
 ;; incluyentes y excluyentes.
 
 ;; Como mis ejemplos tienen 7 atributos más la clase, debería ser
-(def concepto-mas-general-posible [[*] [*] [*] [*] [*] [*] [*]])
+(def concepto-mas-general-posible [[**] [**] [**] [**] [**] [**] [**]])
 (def concepto-mas-especifico-posible [[] [] [] [] [] [] []])
 ;; Un concepto que para mí podría suponer un buen día para salir al campo es
-(def concepto-mas-cercano-para-mi [[:soleado]
+(def concepto-mas-cercano-para-mi [['soleado]
                                    [20 30]
                                    [60 80]
-                                   [:brisa :no]
-                                   [:contento :normal]
-                                   [*]
-                                   [:solvente :ajustado]])
+                                   [si no]
+                                   [contento]
+                                   [**]
+                                   [solvente]])
 
 (he-tardado 20 2.3)
 
@@ -163,7 +165,7 @@
   atributos de un conjunto de datos.
   Metadatos se entiende que es la cabecera de descripción de atributos"
   [metadatos]
-  (vec (replicate (dec (count metadatos)) [*])))
+  (vec (replicate (dec (count metadatos)) [**])))
 
 (he-tardado 20 2.4)
 

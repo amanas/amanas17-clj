@@ -1,6 +1,7 @@
 (ns amanas17.maia.p1-4
-  (:require [amanas17.maia.p1-1 :refer :all]
-            [amanas17.maia.p1-3 :refer :all]))
+  (:use [amanas17.maia.symbols]
+        [amanas17.maia.p1-1]
+        [amanas17.maia.p1-3]))
 
 (defn sort-randomly
   "Ordena aleatoriamente una lista"
@@ -46,7 +47,7 @@
    Asume que la lista de entrada tiene cabecera con descripción de atributos
    Los folds que devuelve también tienen cabecera con descripción de atributos"
   [n [head & body :as list]]
-  (let [groups (group-by identity (atributo :clase list))
+  (let [groups (group-by identity (atributo clase list))
         weights (into {} (for [[k v] groups] [k (count v)]))
         weighted-body (->> body (map (fn [x] [x (get weights (last x))])))
         weighted-folds (folds weighted-body n)]

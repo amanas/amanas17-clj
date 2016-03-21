@@ -1,7 +1,8 @@
 (ns amanas17.maia.p1-5
-  (:require [amanas17.maia.p1-1 :refer :all]
-            [amanas17.maia.p1-3 :refer :all]
-            [amanas17.maia.p1-4 :refer :all]))
+  (:use [amanas17.maia.symbols]
+        [amanas17.maia.p1-1]
+        [amanas17.maia.p1-3]
+        [amanas17.maia.p1-4]))
 
 ;; Para los siguientes ejercicios, primero traduzco a clojure la función A0
 (defn A0
@@ -12,10 +13,10 @@
         ;;==================================
         atributos (first ejemplos)
         casos (rest ejemplos)
-        ;;el indice de :clase en la lista atributos.
+        ;;el indice de clase en la lista atributos.
         indice-clase (->> atributos
                           (map first)
-                          (keep-indexed (fn [i v] (when (= :clase v) i)))
+                          (keep-indexed (fn [i v] (when (= clase v) i)))
                           first)
         clases-posibles (second (nth atributos indice-clase))
         ;;variable que mantiene la cuenta de las apariciones de cada clase.
@@ -42,7 +43,7 @@
     ;;segundo, se obtiene la clase con ese numero maximo
     ;; (almacenado temporalmente en la variable concepto).
     (reset! concepto
-          (ffirst (filter (fn [[k v]] (= v @concepto)) @clases-contabilizadas)))
+            (ffirst (filter (fn [[k v]] (= v @concepto)) @clases-contabilizadas)))
     ;;Y por ultimo se devuelve el concepto inducido por el algoritmo.
     @concepto))
 
@@ -63,7 +64,7 @@
 
 ;; La variable ejemplos contiene los ejemplos originales; la variable extensión
 ;; contiene los mismos ejemplos pero todos ellos teniendo como valor de la clase
-;  el mas común entre todos los ejemplos.
+                                        ;  el mas común entre todos los ejemplos.
 ;; Claro que existen herrores: todos aquellos ejemplos que tenían una clase
 ;; que no era la más común entre la población total han sido modificados.
 ;; Ahora todos tienen la misma clase
@@ -126,10 +127,10 @@
         ;;==================================
         atributos (first ejemplos)
         casos (rest ejemplos)
-        ;;el indice de :clase en la lista atributos.
+        ;;el indice de clase en la lista atributos.
         indice-clase (->> atributos
                           (map first)
-                          (keep-indexed (fn [i v] (when (= :clase v) i)))
+                          (keep-indexed (fn [i v] (when (= clase v) i)))
                           first)
         clases-posibles (second (nth atributos indice-clase))
         ;;variable que mantiene la cuenta de las apariciones de cada clase.
@@ -184,7 +185,7 @@
      ((juxt (partial map first) (partial map second)))
      (map (partial apply +))
      (map #(/ % 10)))
-;; obtengo que la precisión media es 12/25 y el error medio es 13/25.
+;; obtengo que la precisión media es 2/5 y el error medio es 3/5.
 ;; Nótese que este ha sido el resultado de una ejecución cualquiera y que
 ;; cualquier otra podrá variar.
 
