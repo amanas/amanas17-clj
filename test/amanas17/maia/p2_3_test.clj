@@ -57,10 +57,11 @@
            (especializaciones-atributo-numerico [[**][10 15][20][si]] 1
                                                 [soleado 25 40 si -])))
 
+
 ;; Ejercicio 2.13 - tests
 
 (assert
- (= [[[**][**][**][**] [**] [**] [**]]]
+ (= [[[**][**][**][**][**][**][**]]]
     (generalizaciones-CL [[soleado nublado][**][**][**] [**] [**] [**]]
                          metadatos
                          [lluvioso 20 90 si contento relajado insuficiente +])))
@@ -81,7 +82,12 @@
                          metadatos
                          [lluvioso 20 90 si contento relajado insuficiente -])))
 (assert
- (= [[[**] [**] [**] [**] [**] [**] [**]]]
+ (= [[[**][**][**][**][**][**][**]]]
+    (generalizaciones-CL [[**][**][**][si] [**] [**] [**]]
+                         metadatos
+                         [lluvioso 20 90 no contento relajado insuficiente +])))
+(assert
+ (= [[[**][**][**][si][**][**][**]]]
     (generalizaciones-CL [[**][**][**][si] [**] [**] [**]]
                          metadatos
                          [lluvioso 20 90 si contento relajado insuficiente +])))
@@ -115,3 +121,24 @@
     (generalizaciones-CL [[**][**][**][**] [**] [**] [insuficiente]]
                          metadatos
                          [lluvioso 20 90 si contento estresado solvente -])))
+
+
+;; Ejercicio 2.14 - tests
+(assert (=  [[[nublado] [10 30] [80 100] [si] [contento] [relajado] [insuficiente]]
+             [[soleado] [10 30] [80 100] [si] [contento] [relajado] [insuficiente]]
+             [[soleado nublado] [10 20] [80 100] [si] [contento] [relajado] [insuficiente]]
+             [[soleado nublado] [20 30] [80 100] [si] [contento] [relajado] [insuficiente]]
+             [[soleado nublado] [10 30] [80 90] [si] [contento] [relajado] [insuficiente]]
+             [[soleado nublado] [10 30] [90 100] [si] [contento] [relajado] [insuficiente]]
+             [[soleado nublado] [10 30] [80 100] [] [contento] [relajado] [insuficiente]]
+             [[soleado nublado] [10 30] [80 100] [si] [] [relajado] [insuficiente]]
+             [[soleado nublado] [10 30] [80 100] [si] [contento] [] [insuficiente]]
+             [[soleado nublado] [10 30] [80 100] [si] [contento] [relajado] []]]
+           (especializaciones-CL [[soleado nublado][10 30][80 100][si][contento][relajado][insuficiente]]
+                                 metadatos
+                                 [soleado 20 90 si contento relajado insuficiente -])))
+
+(assert (= [[[soleado nublado][20][90][si][contento][relajado][insuficiente]]]
+           (especializaciones-CL [[soleado nublado][20][90][si][contento][relajado][insuficiente]]
+                                 metadatos
+                                 [soleado 20 90 si contento relajado insuficiente +])))

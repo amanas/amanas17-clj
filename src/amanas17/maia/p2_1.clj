@@ -17,15 +17,17 @@
   "Determina si un test es aplicable a un atributo numérico"
   [[v1 v2 :as test]]
   (or (test-ambivalente? test)
-      (and ((fn [v] (or (= -inf v) (= +inf v) (number? v)         )) (if (coll? v1) (first v1) v1))
-           ((fn [v] (or (= -inf v) (= +inf v) (number? v) (nil? v))) (if (coll? v2) (first v2) v2)))))
+      (and ((fn [v] (or (= -inf v) (= +inf v) (number? v)))
+            (if (coll? v1) (first v1) v1))
+           ((fn [v] (or (= -inf v) (= +inf v) (number? v) (nil? v)))
+            (if (coll? v2) (first v2) v2)))))
 
 (defn test-nominal?
   "Determina si un test es aplicable a un atributo nominal"
   [test]
   (or (test-ambivalente? test)
       (and (not (some #{-inf +inf} test))
-           (every? (some-fn symbol? keyword?) test))))
+           (every? (some-fn symbol?) test))))
 
 (defn match-nature?
   "Determina si un test (o array de ellos) y un atributo (o array de ellos)

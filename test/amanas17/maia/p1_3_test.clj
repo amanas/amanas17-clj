@@ -7,7 +7,7 @@
 (assert (= 21 (count ejemplos)))
 
 ;; Ejercicio 1.9 - tests
-(assert (let [x [lluvioso 29 80 :si contento relajado solvente - ]
+(assert (let [x [lluvioso 29 80 si contento relajado solvente - ]
               result (anadir-ejemplo ejemplos x)]
           (and (= 22 (count result))
                (= x (last result)))))

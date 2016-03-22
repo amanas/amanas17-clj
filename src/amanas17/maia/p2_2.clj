@@ -68,12 +68,14 @@
 ;; Ejercicio 2.8
 (defn cmp-concepto-CL
   "Compara dos conceptos. Devuelve:
-  1 si c1 es estrictamente más general que c2
-  0 si c1 es estrictamente de la misma categoría que c2
-  -1 si c1 es estrictamente más específico que c2"
+   1 si c1 es más general que c2 (en todos sus tests)
+   0 si c1 es de la misma categoría que c2 (en todos sus tests)
+  -1 si c1 es más específico que c2 (en todos sus tests)"
   [c1 c2]
-  (cond (and (concepto-CL>= c1 c2) (not (concepto-CL>= c2 c1)))  1
-        (and (not (concepto-CL>= c1 c2)) (concepto-CL>= c2 c1)) -1
-        :else 0))
+  (cond (and (concepto-CL>= c1 c2) (not (concepto-CL>= c2 c1))) 1
+        (and (concepto-CL>= c1 c2)       (concepto-CL>= c2 c1)) 0
+        (and (not (concepto-CL>= c1 c2)) (concepto-CL>= c2 c1)) 1
+        :else 0 ;; TODO: fix me
+        ))
 
 (he-tardado 60 2.8)
