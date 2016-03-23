@@ -14,31 +14,32 @@
 (defn match-every?
   "Comprueba si H satisface todos los ejemplos de PSET.
    Asume que PSET tiene cabecera de atributos"
-  [H PSET]
-  (->> PSET rest (map butlast) (map (partial match-CL H)) (every? true?)))
+  [H pSEText]
+  (->> pSEText (map (partial match-CL H)) (every? true?)))
 
 (defn match-any?
   "Comprueba si H satisface algún ejemplo de NSET.
    Asume que NSET tiene cabecera de atributos"
-  [H NSET]
-  (->> NSET rest (map butlast) (map (partial match-CL H)) (some true?)))
+  [H nSEText]
+  (->> nSEText (map (partial match-CL H)) (some true?)))
 
 
 (defn count-matchings
   "Cuenta los ejemplos que satisface un concepto"
-  [H NSET]
-  (->> NSET rest (map butlast) (filter (partial match-CL H)) count))
+  [H nSEText]
+  (->> nSEText (filter (partial match-CL H)) count))
 
 (defn specs-matching<=H
   "Devuelve las especializaciones inmediatas en un atributo de H
    que satisfacen igual o menos ejemplos negativos que H"
   [H NSET]
-  (let [H-match (count-matchings H NSET)
-        meta (first NSET)
-        specs (->> NSET rest (mapcat (partial especializaciones-CL H meta)) distinct)
-        filter-fn  (fn [S] (<= (count-matchings S NSET) H-match))
+  (let [meta (first NSET)
+        nSET (rest NSET)
+        nSEText (map butlast nSET)
+        H-match (count-matchings H nSEText)
+        specs (->> nSET (mapcat (partial especializaciones-CL H meta)) distinct)
+        filter-fn  (fn [S] (<= (count-matchings S nSEText) H-match))
         result (filter filter-fn specs)]
-    (prn "specs matching <= H" (count result))
     result))
 
 (defn none-more-general?
@@ -54,21 +55,29 @@
    Asume que el primer elemento de PSET y NSET son los metadatos"
   [PSET NSET CSET HSET]
   (let [CSET (atom (set CSET))
-        HSET (atom (set HSET))]
-    (prn "First  [CSET,HSET]=" [(count CSET) (count HSET)])
-    (doall (for [H @HSET]
-             (do (when-not (match-every? H PSET)
-                   (swap! HSET without H))
-                 (when-not (match-any? H NSET)
-                   (do (swap! HSET without H)
-                       (swap! CSET conj H))))))
+        HSET (atom (set HSET))
+        pSEText (map butlast (rest PSET))
+        nSEText (map butlast (rest NSET))]
+    (prn "First  [CSET,HSET]=" [(count @CSET) (count @HSET)])
+    (loop [[H & more] (seq @HSET)]
+       (when H
+         (do (when-not (match-every? H pSEText)
+               (swap! HSET without H))
+             (when-not (match-any? H nSEText)
+               (do (swap! HSET without H)
+                   (swap! CSET conj H)))
+             (recur more))))
     (prn "Second [CSET,HSET]=" [(count @CSET) (count @HSET)])
     (if (empty? @HSET) (vec @CSET)
         (let [NEWSET (atom #{})]
-          (doall (for [H @HSET]
-                   (doall (for [S (specs-matching<=H H NSET)]
-                            (if (none-more-general? @CSET S)
-                              (swap! NEWSET conj S))))))
+          (loop [[H & more] (seq @HSET)]
+            (when H
+              (do (loop [[S & more] (specs-matching<=H H NSET)]
+                    (when S
+                      (do (if (none-more-general? @CSET S)
+                            (swap! NEWSET conj S))
+                          (recur more))))
+                  (recur more))))
           (EGS0 PSET NSET @CSET @NEWSET)))))
 
 (defn EGS
@@ -82,6 +91,7 @@
     (clojure.pprint/pprint egs0)
     (prn "total" (count egs0))
     (obtener-al-azar egs0)))
+
 
 ;; He realizad una llamado a EGS con el conjunto de ejemplos habitual
 (comment (EGS ejemplos))

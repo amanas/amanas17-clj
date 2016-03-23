@@ -33,31 +33,38 @@
         OPEN-SET   (atom #{})]
     (prn "First  [CLOSED-SET,HSET]=" [(count @CLOSED-SET) (count HSET)])
     (loop [[H & more] HSET]
-      (when H (let [NEW-SET (atom #{})]
-                (loop [[S & more] (mapcat (partial especializaciones-CL H (first NSET)) (rest NSET))]
-                  (when S (do (when (> (score-CL S PSET NSET) (score-CL H PSET NSET))
-                                (swap! NEW-SET conj S))
-                              (recur more))))
-                (if (empty? @NEW-SET) (swap! CLOSED-SET conj H)
-                    (loop [[S & more] (seq @NEW-SET)]
-                      (when S (do (swap! OPEN-SET conj S)
-                                  (loop [[C & more] (seq @CLOSED-SET)]
-                                    (when C (do (when (concepto-CL>= C S)
-                                                  (if (> (score-CL C PSET NSET) (score-CL S PSET NSET))
-                                                    (swap! OPEN-SET   without S)
-                                                    (swap! CLOSED-SET without C)))
-                                                (recur more))))
-                                  (recur more)))))
-                (recur more))))
+      (when H
+        (let [SPECS (mapcat (partial especializaciones-CL H (first NSET)) (rest NSET))
+              NEW-SET (atom #{})]
+          (loop [[S & more] SPECS]
+            (when S
+              (do (when (> (score-CL S PSET NSET) (score-CL H PSET NSET))
+                    (swap! NEW-SET conj S))
+                  (recur more))))
+          (if (empty? @NEW-SET)
+            (swap! CLOSED-SET conj H)
+            (loop [[S & more] (seq @NEW-SET)]
+              (when S
+                (do (swap! OPEN-SET conj S)
+                    (loop [[C & more] (seq @CLOSED-SET)]
+                      (when C
+                        (do (when (= -1 (cmp-concepto-CL S C)) ;; (concepto-CL>= C S)
+                              (if (> (score-CL C PSET NSET) (score-CL S PSET NSET))
+                                (swap! OPEN-SET   without S)
+                                (swap! CLOSED-SET without C)))
+                            (recur more))))
+                    (recur more)))))
+          (recur more))))
     (prn "Second [CLOSED-SET,OPEN-SET]=" [(count @CLOSED-SET) (count @OPEN-SET)])
     (if (empty? @OPEN-SET)
       (let [result (->> @CLOSED-SET (sort-by-score-desc PSET NSET))]
         (clojure.pprint/pprint result)
         (prn "total" (count result))
         (first result))
-      (let [BEST-SET (->> @OPEN-SET (into @CLOSED-SET) (sort-by-score-desc PSET NSET) (take beam-size))
-            CLOSED-SET (filter (set BEST-SET) @CLOSED-SET)
-            OPEN-SET   (filter (set BEST-SET) @OPEN-SET)]
+      (let [BEST-SET (->> @OPEN-SET (into @CLOSED-SET) (sort-by-score-desc PSET NSET)
+                          (take beam-size) set)
+            CLOSED-SET (filter BEST-SET @CLOSED-SET)
+            OPEN-SET   (filter BEST-SET @OPEN-SET)]
         (HGS0 PSET NSET CLOSED-SET OPEN-SET)))))
 
 (defn HGS
@@ -71,3 +78,4 @@
     hgs0))
 
 (comment (HGS ejemplos))
+(comment (HGS ionosphere))
