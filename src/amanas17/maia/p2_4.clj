@@ -53,16 +53,16 @@
    con los datos de entrenamiento.
    Asume que el primer elemento de PSET y NSET son los metadatos"
   [PSET NSET CSET HSET]
-  (prn "Main [CSET,HSET]=" [(count CSET) (count HSET)])
   (let [CSET (atom (set CSET))
         HSET (atom (set HSET))]
+    (prn "First  [CSET,HSET]=" [(count CSET) (count HSET)])
     (doall (for [H @HSET]
              (do (when-not (match-every? H PSET)
                    (swap! HSET without H))
                  (when-not (match-any? H NSET)
                    (do (swap! HSET without H)
                        (swap! CSET conj H))))))
-    (prn "Scnd [CSET,HSET]=" [(count @CSET) (count @HSET)])
+    (prn "Second [CSET,HSET]=" [(count @CSET) (count @HSET)])
     (if (empty? @HSET) (vec @CSET)
         (let [NEWSET (atom #{})]
           (doall (for [H @HSET]
@@ -76,12 +76,9 @@
    tomando el concepto más específico como CSET y el más general como HSET"
   [ejemplos]
   (let [meta (first ejemplos)
-        ejemplos+ (->> ejemplos rest (filter (comp (partial = '+) last)))
-        ejemplos- (->> ejemplos rest (filter (comp (partial = '-) last)))
-        egs0 (EGS0 (cons meta ejemplos+)
-                   (cons meta ejemplos-)
-                   []
-                   [(concepto-CL-mas-general meta)])]
+        ej+ (->> ejemplos rest (filter (comp (partial = '+) last)))
+        ej- (->> ejemplos rest (filter (comp (partial = '-) last)))
+        egs0 (EGS0 (cons meta ej+) (cons meta ej-) [] [(concepto-CL-mas-general meta)])]
     (clojure.pprint/pprint egs0)
     (prn "total" (count egs0))
     (obtener-al-azar egs0)))

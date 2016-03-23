@@ -9,18 +9,18 @@
 
 ;; Ejercicio 17
 (defn score-CL
-  [concepto-CL pSET nSET]
-  (let [Pc (->> pSET (map (partial match-CL concepto-CL)) (filter true?) count)
-        Nc (->> nSET (map (partial match-CL concepto-CL)) (remove true?) count)]
-    (/ (+ Pc Nc) (+ (count pSET) (count nSET)))))
+  [concepto-CL PSET NSET]
+  (let [Pc (->> PSET rest (map butlast) (filter (partial match-CL concepto-CL)) count)
+        Nc (->> NSET rest (map butlast) (remove (partial match-CL concepto-CL)) count)]
+    (/ (+ Pc Nc) (+ (dec (count PSET)) (dec (count NSET))))))
 
 
 ;; Ejercicio 18
-(def beam-size 5)
+(def beam-size 10)
 
 (defn sort-by-score-desc
-  [conceptos pSET nSET]
-  (reverse (sort-by (fn [c] (score-CL c pSET nSET)) conceptos)))
+  [PSET NSET conceptos]
+  (reverse (sort-by (fn [C] (score-CL C PSET NSET)) conceptos)))
 
 (defn HGS0
   "Algoritmo de búsqueda heurística HGS, de general a específico,
@@ -29,52 +29,45 @@
    positivos y no satisface la mayoría de los negativos.
    Asume que los conjuntos PSET y NSET tienen cabecera de atributos"
   [PSET NSET CLOSED-SET HSET]
-  (let [meta (first PSET)
-        pSET (rest PSET)
-        pSEText (map butlast pSET)
-        nSET (rest NSET)
-        nSEText (map butlast nSET)
-        CLOSED-SET (atom CLOSED-SET)
-        OPEN-SET   (atom [])
-        NEW-SET    (atom [])]
-    (doall (for [H HSET]
-             (do (prn "H" H)
-                 (doall (for [S (mapcat (partial especializaciones-CL H meta) nSET)]
-                          (when (> (score-CL S pSEText nSEText) (score-CL H pSEText nSEText))
-                            (swap! NEW-SET conj S))))
-                 (pr "NEW-SET count" (count @NEW-SET))
-                 (if (empty? @NEW-SET)
-                   (swap! CLOSED-SET conj H)
-                   (doall (for [S @NEW-SET]
-                            (do (prn "S" S)
-                                (swap! OPEN-SET conj S)
-                                (doall (for [C @CLOSED-SET]
-                                         (when (concepto-CL>= C S)
-                                           (if (> (score-CL C pSEText nSEText) (score-CL S pSEText nSEText))
-                                             (swap! OPEN-SET   without S)
-                                             (swap! CLOSED-SET without C))))))))))))
-    (pr "OPEN-SET count" (count @OPEN-SET))
+  (let [CLOSED-SET (atom (set CLOSED-SET))
+        OPEN-SET   (atom #{})]
+    (prn "First  [CLOSED-SET,HSET]=" [(count @CLOSED-SET) (count HSET)])
+    (loop [[H & more] HSET]
+      (when H (let [NEW-SET (atom #{})]
+                (loop [[S & more] (mapcat (partial especializaciones-CL H (first NSET)) (rest NSET))]
+                  (when S (do (when (> (score-CL S PSET NSET) (score-CL H PSET NSET))
+                                (swap! NEW-SET conj S))
+                              (recur more))))
+                (if (empty? @NEW-SET) (swap! CLOSED-SET conj H)
+                    (loop [[S & more] (seq @NEW-SET)]
+                      (when S (do (swap! OPEN-SET conj S)
+                                  (loop [[C & more] (seq @CLOSED-SET)]
+                                    (when C (do (when (concepto-CL>= C S)
+                                                  (if (> (score-CL C PSET NSET) (score-CL S PSET NSET))
+                                                    (swap! OPEN-SET   without S)
+                                                    (swap! CLOSED-SET without C)))
+                                                (recur more))))
+                                  (recur more)))))
+                (recur more))))
+    (prn "Second [CLOSED-SET,OPEN-SET]=" [(count @CLOSED-SET) (count @OPEN-SET)])
     (if (empty? @OPEN-SET)
-      (first (sort-by-score-desc @CLOSED-SET pSEText nSEText))
-      (let [BEST-SET (take beam-size
-                           (sort-by-score-desc (distinct (concat @CLOSED-SET @OPEN-SET))
-                                               PSET nSET))
+      (let [result (->> @CLOSED-SET (sort-by-score-desc PSET NSET))]
+        (clojure.pprint/pprint result)
+        (prn "total" (count result))
+        (first result))
+      (let [BEST-SET (->> @OPEN-SET (into @CLOSED-SET) (sort-by-score-desc PSET NSET) (take beam-size))
             CLOSED-SET (filter (set BEST-SET) @CLOSED-SET)
             OPEN-SET   (filter (set BEST-SET) @OPEN-SET)]
         (HGS0 PSET NSET CLOSED-SET OPEN-SET)))))
-
 
 (defn HGS
   "Devuelve un concepto al azar del resultado de aplicar HGS0 a los ejemplos
    tomando el concepto más específico como CSET y el más general como HSET"
   [ejemplos]
   (let [meta (first ejemplos)
-        ejemplos+ (remove (fn [e] (= '- (last e))) (rest ejemplos))
-        ejemplos- (remove (fn [e] (= '+ (last e))) (rest ejemplos))
-        hgs0 (HGS0 (cons meta ejemplos+)
-                   (cons meta ejemplos-)
-                   []
-                   [(concepto-CL-mas-general meta)])]
+        ej+ (->> ejemplos rest (filter (comp (partial = '+) last)))
+        ej- (->> ejemplos rest (filter (comp (partial = '-) last)))
+        hgs0 (HGS0 (cons meta ej+) (cons meta ej-) [] [(concepto-CL-mas-general meta)])]
     hgs0))
 
 (comment (HGS ejemplos))
