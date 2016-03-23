@@ -72,10 +72,8 @@
    0 si c1 es de la misma categoría que c2 (en todos sus tests)
   -1 si c1 es más específico que c2 (en todos sus tests)"
   [c1 c2]
-  (cond (and (concepto-CL>= c1 c2) (not (concepto-CL>= c2 c1))) 1
-        (and (concepto-CL>= c1 c2)       (concepto-CL>= c2 c1)) 0
-        (and (not (concepto-CL>= c1 c2)) (concepto-CL>= c2 c1)) 1
-        :else 0 ;; TODO: fix me
-        ))
+  (cond (and (concepto-CL>= c1 c2) (not (concepto-CL>= c2 c1)))  1
+        (and (not (concepto-CL>= c1 c2)) (concepto-CL>= c2 c1)) -1
+        :else 0))
 
 (he-tardado 60 2.8)
