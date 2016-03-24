@@ -18,7 +18,7 @@
                          (assoc concepto-CL indice-atributo all-values)
                          indice-atributo metadatos)
           :else (->> (for [v test] (remove #{v} test))
-                     (map (partial assoc concepto-CL indice-atributo))))))
+                     vec (map (partial assoc concepto-CL indice-atributo))))))
 
 (he-tardado 60 2.9)
 
@@ -33,7 +33,7 @@
         remaining-values (remove (partial match-nominal? test) all-values)]
     (cond (<= (count remaining-values) 1) [(assoc concepto-CL indice-atributo [**])]
           :else (->> (for [r remaining-values] (conj test r))
-                     (map (partial assoc concepto-CL indice-atributo))))))
+                     vec (map (partial assoc concepto-CL indice-atributo))))))
 
 (he-tardado 60 2.10)
 

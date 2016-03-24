@@ -11,24 +11,25 @@
   [coll x]
   (remove (partial = x) coll))
 
-(defn match-every?
+(defn match-all?
   "Comprueba si H satisface todos los ejemplos de PSET.
    Asume que PSET tiene cabecera de atributos"
   [H pSEText]
-  (->> pSEText (map (partial match-CL H)) (every? true?)))
+  (every? (partial match-CL H) pSEText))
 
 (defn match-any?
   "Comprueba si H satisface algún ejemplo de NSET.
    Asume que NSET tiene cabecera de atributos"
   [H nSEText]
-  (->> nSEText (map (partial match-CL H)) (some true?)))
-
+  (some (partial match-CL H) nSEText))
 
 (defn count-matchings
   "Cuenta los ejemplos que satisface un concepto"
   [H nSEText]
   (->> nSEText (filter (partial match-CL H)) count))
 
+;; Abuso de pmap (pararell map) para sacar rendimiento a los procesadores
+;; multicore
 (defn specs-matching<=H
   "Devuelve las especializaciones inmediatas en un atributo de H
    que satisfacen igual o menos ejemplos negativos que H"
@@ -37,15 +38,15 @@
         nSET (rest NSET)
         nSEText (map butlast nSET)
         H-match (count-matchings H nSEText)
-        specs (->> nSET (mapcat (partial especializaciones-CL H meta)) distinct)
-        filter-fn  (fn [S] (<= (count-matchings S nSEText) H-match))
-        result (filter filter-fn specs)]
-    result))
+        specs (->> nSET (pmap (partial especializaciones-CL H meta))
+                   (apply concat) distinct (remove (partial = H)))
+        filter-fn  (fn [S] (when (<= (count-matchings S nSEText) H-match) S))]
+    (remove nil? (pmap filter-fn specs))))
 
 (defn none-more-general?
   "Devuelve true si ningún concepto de CSET es más general que S"
   [CSET S]
-  (every? (fn [C] (<= 0 (cmp-concepto-CL C S))) CSET))
+  (every? (partial <= 0) (pmap #(cmp-concepto-CL % S) CSET)))
 
 (defn EGS0
   "Algoritmo de búsqueda exaustivo EGS, de general a específico, de inducción
@@ -61,7 +62,7 @@
     (prn "First  [CSET,HSET]=" [(count @CSET) (count @HSET)])
     (loop [[H & more] (seq @HSET)]
        (when H
-         (do (when-not (match-every? H pSEText)
+         (do (when-not (match-all? H pSEText)
                (swap! HSET without H))
              (when-not (match-any? H nSEText)
                (do (swap! HSET without H)
@@ -88,10 +89,12 @@
         ej+ (->> ejemplos rest (filter (comp (partial = '+) last)))
         ej- (->> ejemplos rest (filter (comp (partial = '-) last)))
         egs0 (EGS0 (cons meta ej+) (cons meta ej-) [] [(concepto-CL-mas-general meta)])]
-    (clojure.pprint/pprint egs0)
+;;    (clojure.pprint/pprint egs0)
     (prn "total" (count egs0))
     (obtener-al-azar egs0)))
 
+(time (prn (EGS ejemplos)))
+;;(time (prn (EGS ionosphere)))
 
 ;; He realizad una llamado a EGS con el conjunto de ejemplos habitual
 (comment (EGS ejemplos))
