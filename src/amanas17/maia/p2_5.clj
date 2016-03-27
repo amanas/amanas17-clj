@@ -17,7 +17,13 @@
 ;; Ejercicio 2.18
 (defn sort-by-score-desc
   [PSET NSET conceptos]
-  (reverse (sort-by (fn [C] (score-CL C PSET NSET)) conceptos)))
+  (->> conceptos
+       (pmap (fn [C] [C (score-CL C PSET NSET)]))
+       (sort-by second)
+       (map first)
+       reverse)
+  ;;  (reverse (sort-by (fn [C] (score-CL C PSET NSET)) conceptos))
+  )
 
 (defn HGS0
   "Algoritmo de búsqueda heurística HGS, de general a específico,
@@ -47,8 +53,8 @@
                         (doall (pmap (fn [S]
                                        (swap! OPEN-SET conj S)
                                        (doall (pmap (fn [C]
-                                                      (when ;; (= -1 (cmp-concepto-CL N C))
-                                                          (concepto-CL>= C S)
+                                                      (when  (= -1 (cmp-concepto-CL S C))
+                                                          ;;(concepto-CL>= C S)
                                                         (if (> (score-CL C PSET NSET) (score-CL S PSET NSET))
                                                           (swap! OPEN-SET   without S)
                                                           (swap! CLOSED-SET without C))))
@@ -80,7 +86,7 @@
      hgs0)))
 
 ;; Al ejecutar HGS en los ejemplos
-(comment (time (HGS ejemplos 100)))
+(comment (time (HGS ejemplos 1000)))
 ;; el resultado que obtengo es
 ;; [[**] [22 40] [79 +inf] [**] (contento) [**] [**]]
 ;; que parece describir algo mejor el concepto que para mí
@@ -95,4 +101,4 @@
 ;; No he podido acabar con éxito la búsqueda en los archivos indicados
 ;; el el material porque siempre acabo en una StackOverflow Exception
 (comment (time (HGS ionosphere 1)))
-(comment (time (HGS agaricus-lepiota 1)))
+(comment (time (HGS agaricus-lepiota 2)))
