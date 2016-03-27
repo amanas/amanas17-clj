@@ -40,7 +40,7 @@
   ([test atributo]
    (or (test-ambivalente? test)
        (and (test-numerico? test) (number? atributo))
-       (and (test-nominal? test)  (symbol? atributo)))))
+       (and (test-nominal?  test) (symbol? atributo)))))
 
 (defn match-ambivalente?
   "Determina si un atributo satisface un test ambivalente"
@@ -151,10 +151,10 @@
 (def concepto-mas-general-posible [[**] [**] [**] [**] [**] [**] [**]])
 (def concepto-mas-especifico-posible [[] [] [] [] [] [] []])
 ;; Un concepto que para mí podría suponer un buen día para salir al campo es
-(def concepto-mas-cercano-para-mi [['soleado]
+(def concepto-mas-cercano-para-mi [[soleado]
                                    [20 30]
                                    [60 80]
-                                   [si no]
+                                   [no]
                                    [contento]
                                    [**]
                                    [solvente]])
