@@ -43,12 +43,13 @@
                                         (remove (partial = H)))))
                       (if (empty? @NEW-SET)
                         (swap! CLOSED-SET conj H)
-                        (doall (pmap (fn [N]
-                                       (swap! OPEN-SET conj N)
+                        (doall (pmap (fn [S]
+                                       (swap! OPEN-SET conj S)
                                        (doall (pmap (fn [C]
-                                                      (when (= -1 (cmp-concepto-CL N C)) ;; (concepto-CL>= C S)
-                                                        (if (> (score-CL C PSET NSET) (score-CL N PSET NSET))
-                                                          (swap! OPEN-SET   without N)
+                                                      (when ;; (= -1 (cmp-concepto-CL N C))
+                                                          (concepto-CL>= C S)
+                                                        (if (> (score-CL C PSET NSET) (score-CL S PSET NSET))
+                                                          (swap! OPEN-SET   without S)
                                                           (swap! CLOSED-SET without C))))
                                                     @CLOSED-SET)))
                                      @NEW-SET)))))
@@ -93,4 +94,4 @@
 ;; No he podido acabar con éxito la búsqueda en los archivos indicados
 ;; el el material porque siempre acabo en una StackOverflow Exception
 (comment (time (HGS ionosphere 1)))
-(comment (time (HGS agaricus-lepiota)))
+(comment (time (HGS agaricus-lepiota 1)))
