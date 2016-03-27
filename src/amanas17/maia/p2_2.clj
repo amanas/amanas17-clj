@@ -43,8 +43,9 @@
   "Indica si un test nominal es más general o de la misma categoría
   que otro"
   [t1 t2]
-  (or (every? (set t1) t2)
-      (not (every? (set t2) t1))))
+  (cond (= [] t1) (= [] t2)
+        (= [**] t2) (= [**] t1)
+        :else true))
 
 ;; Ejercicio 2.6
 (defn test-CL>=
@@ -61,7 +62,7 @@
   "Indica si todos los tests de un concepto tienen mayor o igual
   generalidad que los de otro"
   [c1 c2]
-  (every? true? (map (partial apply test-CL>=) (partition 2 (interleave c1 c2)))))
+  (every? (partial apply test-CL>=) (partition 2 (interleave c1 c2))))
 
 (he-tardado 5 2.7)
 

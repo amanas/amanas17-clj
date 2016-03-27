@@ -27,7 +27,7 @@
   [test]
   (or (test-ambivalente? test)
       (and (not (some #{-inf +inf} test))
-           (every? (some-fn symbol?) test))))
+           (symbol? (first test)))))
 
 (defn match-nature?
   "Determina si un test (o array de ellos) y un atributo (o array de ellos)
@@ -40,7 +40,7 @@
   ([test atributo]
    (or (test-ambivalente? test)
        (and (test-numerico? test) (number? atributo))
-       (and (test-nominal? test)  ((some-fn symbol? keyword?) atributo)))))
+       (and (test-nominal? test)  (symbol? atributo)))))
 
 (defn match-ambivalente?
   "Determina si un atributo satisface un test ambivalente"
@@ -51,7 +51,7 @@
   "Determina si un atributo nominal satisface un test nominal"
   [test atributo]
   (or (match-ambivalente? test atributo)
-      (not (nil? (some (set test) [atributo])))))
+      (= (first test) atributo)))
 
 (defn comp<=
   "Función auxiliar que permite hacer comparaciones habida cuenta de que ahora

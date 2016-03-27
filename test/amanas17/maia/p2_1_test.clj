@@ -18,8 +18,7 @@
 
 (assert (and (test-nominal? [])
              (test-nominal? [**])
-             (test-nominal? ['a])
-             (test-nominal? ['a 'b])))
+             (test-nominal? ['a])))
 
 (assert (and (match-nature? [] 1)
              (match-nature? [**] 1)
@@ -30,7 +29,6 @@
              (match-nature? [1 [2]] 1)
              (match-nature? [[1] [2]] 1)
              (match-nature? ['a] 'b)
-             (match-nature? ['a 'b] 'c)
              (match-nature? [] 'a)
              (match-nature? [**] 'a)))
 
@@ -38,8 +36,9 @@
              (match-ambivalente? [**] 'a)))
 
 (assert (and (match-nominal? ['a] 'a)
-             (match-nominal? ['a 'b] 'a)
-             (not (match-nominal? ['a 'b] 'c))))
+             (match-nominal? [**] 'a)
+             (not (match-nominal? [] 'a))
+             (not (match-nominal? ['a] 'b))))
 
 (assert (and (= [] (normalize-numerico []))
              (= [**] (normalize-numerico [**]))

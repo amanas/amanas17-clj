@@ -40,13 +40,15 @@
         H-match (count-matchings H nSEText)
         specs (->> nSET (pmap (partial especializaciones-CL H meta))
                    (apply concat) distinct (remove (partial = H)))
-        filter-fn  (fn [S] (when (<= (count-matchings S nSEText) H-match) S))]
+        filter-fn  (fn [S] (when (< (count-matchings S nSEText) H-match) S))]
     (remove nil? (pmap filter-fn specs))))
 
 (defn none-more-general?
   "Devuelve true si ningún concepto de CSET es más general que S"
   [CSET S]
   (every? (partial <= 0) (pmap #(cmp-concepto-CL % S) CSET)))
+
+;; Ejercicio 2.15
 
 (defn EGS0
   "Algoritmo de búsqueda exaustivo EGS, de general a específico, de inducción
@@ -61,24 +63,21 @@
         nSEText (map butlast (rest NSET))]
     (prn "First  [CSET,HSET]=" [(count @CSET) (count @HSET)])
     (loop [[H & more] (seq @HSET)]
-       (when H
-         (do (when-not (match-all? H pSEText)
-               (swap! HSET without H))
-             (when-not (match-any? H nSEText)
-               (do (swap! HSET without H)
-                   (swap! CSET conj H)))
-             (recur more))))
+      (when H (do (when-not (match-all? H pSEText)
+                    (swap! HSET without H))
+                  (when-not (match-any? H nSEText)
+                    (do (swap! HSET without H)
+                        (swap! CSET conj H)))
+                  (recur more))))
     (prn "Second [CSET,HSET]=" [(count @CSET) (count @HSET)])
     (if (empty? @HSET) (vec @CSET)
         (let [NEWSET (atom #{})]
           (loop [[H & more] (seq @HSET)]
-            (when H
-              (do (loop [[S & more] (specs-matching<=H H NSET)]
-                    (when S
-                      (do (if (none-more-general? @CSET S)
-                            (swap! NEWSET conj S))
-                          (recur more))))
-                  (recur more))))
+            (when H (do (loop [[S & more] (specs-matching<=H H NSET)]
+                          (when S (do (if (none-more-general? @CSET S)
+                                        (swap! NEWSET conj S))
+                                      (recur more))))
+                        (recur more))))
           (EGS0 PSET NSET @CSET @NEWSET)))))
 
 (defn EGS
@@ -89,20 +88,18 @@
         ej+ (->> ejemplos rest (filter (comp (partial = '+) last)))
         ej- (->> ejemplos rest (filter (comp (partial = '-) last)))
         egs0 (EGS0 (cons meta ej+) (cons meta ej-) [] [(concepto-CL-mas-general meta)])]
-;;    (clojure.pprint/pprint egs0)
-    (prn "total" (count egs0))
+    (clojure.pprint/pprint egs0)
+    (prn "Total" (count egs0))
     (obtener-al-azar egs0)))
 
-(time (prn (EGS ejemplos)))
-;;(time (prn (EGS ionosphere)))
-
 ;; He realizad una llamado a EGS con el conjunto de ejemplos habitual
-(comment (EGS ejemplos))
+(comment
+  (time (EGS ejemplos)))
 ;; El resultado ha sido:
-;; [[**] [-inf 35] [65 95] (no) (contento) [**] [**]]
+;; [[**] [27 35] [65 95] [**] [contento] [**] [**]]
 ;; Previamente, el concepto que yo tenía definido como
 ;; buen día para salir el campo era:
-;; [['soleado] [20 30] [60 80] [si no] [contento] [**] [solvente]]
+;; [[soleado] [20 30] [60 80] [si no] [contento] [**] [solvente]]
 ;; Observo que:
 ;; 1. Mi concepto de buen día para salir está incorporado en el concepto
 ;;    que devuelve el algoritmo EGS
@@ -115,36 +112,14 @@
 
 ;; (he-tardado 300 2.15)
 
-;; TODO: acabar esto
-;; Ejercicio 16
 
-;; Cargamos los ejemplos de ionosfera
+;; Ejercicio 2.16
+
+;; Cargamos los ejemplos de ionosfera y agaricus-lepiota
 (def ionosphere (leer-ejemplos "resources/maia/ionosphere.scm"))
-;; Y lanzamos el algoritmo - lo dejo comentado para que no se lance más
-;; por accidente.
 (comment (time (EGS ionosphere)))
-;; El resultado de las trazas arrojadas por esta ejecución está en
-;; resources/maia/ionosphere.trazas
-;; Ha tardado 72 segundos y observo que el NEWSET es generado con 3262
-;; nuevas hipótesis a comprobar.
-;; Efectivamente, en la función  specs-matching-less-than,
-;; para cada ejemplo negativo (y tenemos 126)
-(comment (->> ionosphere
-              rest
-              (map last)
-              (group-by identity)
-              (#(get % '-))
-              count))
-;; se pueden crear hasta 2 * 34 especializaciones (pues tenemos 34
-;; atributos). Es decir, un máximo de 8568. En realidad solo se acaban considerando
-;; 3262, pues muchas de ellas están repetidas en su creación.
-;; Y para cada una de ellas, hay que contar cuantos ejemplos
-;; positivos cubren. Es decir, el coste computacional de este algoritmo
-;; cuando los ejemplos y los atributos son grandes es elevádisimo.
-
-
-;; Similares reflexiones se aplican al caso
 (def agaricus-lepiota (leer-ejemplos "resources/maia/agaricus-lepiota.scm"))
 (comment (time (EGS agaricus-lepiota)))
-;; En este caso, el proceso tarda:
-;; TODO: acabar esto
+
+;; No he podido acabar con éxito la búsqueda en los archivos indicados
+;; el el material porque siempre acabo en una StackOverflow Exception

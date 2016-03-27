@@ -30,11 +30,10 @@
              (test-numerico>= [1 +inf] [1 1])
              (not (test-numerico>= [1 -inf] [1 1]))))
 
-(assert (and (test-nominal>= ['a 'b] ['a])
+(assert (and (test-nominal>= ['a] ['a])
              (test-nominal>= [**] ['a])
              (test-nominal>= ['a] [])
-             (test-nominal>= ['a 'b] ['a 'c])
-             (not (test-nominal>= ['a] ['a 'b]))
+             (test-nominal>= ['a] ['c])
              (not (test-nominal>= [] ['a]))
              (test-nominal>= ['a] [])))
 

@@ -9,9 +9,9 @@
 
 ;; Ejercicio 2.9 - tests
 ;; creo que el ejemplo del material de estudio está mal
-(assert (= [[[nublado lluvioso]  [**] [20] [si]]
-            [[soleado lluvioso]  [**] [20] [si]]
-            [[soleado nublado]  [**] [20] [si]]]
+(assert (= [ [[soleado]  [**] [20] [si]]
+             [[nublado]  [**] [20] [si]]
+             [[lluvioso]  [**] [20] [si]]]
            (especializaciones-atributo-nominal [[**][**][20][si]] 0
                                                metadatos)))
 (assert (= [[[][**][20][si]]]
@@ -62,12 +62,12 @@
 
 (assert
  (= [[[**][**][**][**][**][**][**]]]
-    (generalizaciones-CL [[soleado nublado][**][**][**] [**] [**] [**]]
+    (generalizaciones-CL [[soleado][**][**][**] [**] [**] [**]]
                          metadatos
                          [lluvioso 20 90 si contento relajado insuficiente +])))
 (assert
- (= [[[soleado lluvioso][**][**][**] [**] [**] [**]]]
-    (generalizaciones-CL [[soleado lluvioso][**][**][**] [**] [**] [**]]
+ (= [[[lluvioso] [**][**][**] [**] [**] [**]]]
+    (generalizaciones-CL [[lluvioso][**][**][**] [**] [**] [**]]
                          metadatos
                          [lluvioso 20 90 si contento relajado insuficiente -])))
 (assert
@@ -124,21 +124,20 @@
 
 
 ;; Ejercicio 2.14 - tests
-(assert (=  [[[nublado] [10 30] [80 100] [si] [contento] [relajado] [insuficiente]]
-             [[soleado] [10 30] [80 100] [si] [contento] [relajado] [insuficiente]]
-             [[soleado nublado] [10 20] [80 100] [si] [contento] [relajado] [insuficiente]]
-             [[soleado nublado] [20 30] [80 100] [si] [contento] [relajado] [insuficiente]]
-             [[soleado nublado] [10 30] [80 90] [si] [contento] [relajado] [insuficiente]]
-             [[soleado nublado] [10 30] [90 100] [si] [contento] [relajado] [insuficiente]]
-             [[soleado nublado] [10 30] [80 100] [] [contento] [relajado] [insuficiente]]
-             [[soleado nublado] [10 30] [80 100] [si] [] [relajado] [insuficiente]]
-             [[soleado nublado] [10 30] [80 100] [si] [contento] [] [insuficiente]]
-             [[soleado nublado] [10 30] [80 100] [si] [contento] [relajado] []]]
-           (especializaciones-CL [[soleado nublado][10 30][80 100][si][contento][relajado][insuficiente]]
-                                 metadatos
-                                 [soleado 20 90 si contento relajado insuficiente -])))
+(assert (=  [[[] [10 30] [80 100] [si] [contento] [relajado] [insuficiente]]
+             [[soleado] [10 20] [80 100] [si] [contento] [relajado] [insuficiente]]
+             [[soleado] [20 30] [80 100] [si] [contento] [relajado] [insuficiente]]
+             [[soleado] [10 30] [80 90] [si] [contento] [relajado] [insuficiente]]
+             [[soleado] [10 30] [90 100] [si] [contento] [relajado] [insuficiente]]
+             [[soleado] [10 30] [80 100] [] [contento] [relajado] [insuficiente]]
+             [[soleado] [10 30] [80 100] [si] [] [relajado] [insuficiente]]
+             [[soleado] [10 30] [80 100] [si] [contento] [] [insuficiente]]
+             [[soleado] [10 30] [80 100] [si] [contento] [relajado] []]]
+            (especializaciones-CL [[soleado][10 30][80 100][si][contento][relajado][insuficiente]]
+                                  metadatos
+                                  [soleado 20 90 si contento relajado insuficiente -])))
 
-(assert (= [[[soleado nublado][20][90][si][contento][relajado][insuficiente]]]
-           (especializaciones-CL [[soleado nublado][20][90][si][contento][relajado][insuficiente]]
+(assert (= [[[soleado][20][90][si][contento][relajado][insuficiente]]]
+           (especializaciones-CL [[soleado][20][90][si][contento][relajado][insuficiente]]
                                  metadatos
                                  [soleado 20 90 si contento relajado insuficiente +])))

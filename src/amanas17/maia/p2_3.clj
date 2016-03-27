@@ -13,12 +13,9 @@
   [concepto-CL indice-atributo metadatos]
   (let [test (nth concepto-CL indice-atributo)
         all-values (second (nth metadatos indice-atributo))]
-    (cond (= test []) [concepto-CL]
-          (= test [**]) (especializaciones-atributo-nominal
-                         (assoc concepto-CL indice-atributo all-values)
-                         indice-atributo metadatos)
-          :else (->> (for [v test] (remove #{v} test))
-                     vec (map (partial assoc concepto-CL indice-atributo))))))
+    (if (= test [**])
+      (map #(assoc concepto-CL indice-atributo [%]) all-values)
+      [(assoc concepto-CL indice-atributo [])])))
 
 (he-tardado 60 2.9)
 
@@ -29,11 +26,10 @@
    Si no hay generalizaciones, devuelve el concepto en una lista"
   [concepto-CL indice-atributo metadatos]
   (let [test (nth concepto-CL indice-atributo)
-        all-values (second (nth metadatos indice-atributo))
-        remaining-values (remove (partial match-nominal? test) all-values)]
-    (cond (<= (count remaining-values) 1) [(assoc concepto-CL indice-atributo [**])]
-          :else (->> (for [r remaining-values] (conj test r))
-                     vec (map (partial assoc concepto-CL indice-atributo))))))
+        all-values (second (nth metadatos indice-atributo))]
+    (if (= test [])
+      (map #(assoc concepto-CL indice-atributo [%]) all-values)
+      [(assoc concepto-CL indice-atributo [**])])))
 
 (he-tardado 60 2.10)
 
@@ -84,7 +80,6 @@
      [(generalizacion-atributo-numerico concepto-CL indice ejemplo)]
      (generalizaciones-atributo-nominal concepto-CL indice metadatos)))
   ([concepto-CL metadatos ejemplo]
-   ;; todo: no estoy completamente seguro de que haya que hacer esta compobación
    (if (or (= - (last ejemplo))
            (match-CL concepto-CL (butlast ejemplo)))
      [concepto-CL]
@@ -104,7 +99,6 @@
      (especializaciones-atributo-numerico concepto-CL indice ejemplo)
      (especializaciones-atributo-nominal concepto-CL indice metadatos)))
   ([concepto-CL metadatos ejemplo]
-   ;; todo: no estoy completamente seguro de que haya que hacer esta compobación
    (if (or (= + (last ejemplo))
            (not (match-CL concepto-CL (butlast ejemplo))))
      [concepto-CL]
