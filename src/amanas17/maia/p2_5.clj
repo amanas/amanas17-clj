@@ -40,7 +40,8 @@
                                    (->> (rest NSET)
                                         (pmap (partial especializaciones-CL H (first NSET)))
                                         (apply concat)
-                                        (remove (partial = H)))))
+                                        (remove (partial = H))
+                                        distinct)))
                       (if (empty? @NEW-SET)
                         (swap! CLOSED-SET conj H)
                         (doall (pmap (fn [S]
