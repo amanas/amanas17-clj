@@ -21,9 +21,7 @@
        (pmap (fn [C] [C (score-CL C PSET NSET)]))
        (sort-by second)
        (map first)
-       reverse)
-  ;;  (reverse (sort-by (fn [C] (score-CL C PSET NSET)) conceptos))
-  )
+       reverse))
 
 (defn HGS0
   "Algoritmo de búsqueda heurística HGS, de general a específico,

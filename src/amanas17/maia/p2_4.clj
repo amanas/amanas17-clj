@@ -48,7 +48,6 @@
          (remove (partial = H))
          distinct)))
 
-;; TODO: memoize this
 (defn none-more-general?
   "Devuelve true si ningún concepto de CSET es más general que S"
   [CSET S]

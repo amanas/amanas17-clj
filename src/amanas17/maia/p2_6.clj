@@ -10,27 +10,37 @@
 ;; Ejercicio 2.20
 (defn match-TC
   "Determina si una tabla de criterios es satisfecha para un ejemplo"
-  [concepto-TC ejemplo-sin-clase]
-  (and (= (count (rest concepto-TC)) (count ejemplo-sin-clase))
-       (match-nature? [(rest concepto-TC) ejemplo-sin-clase])
+  [[umbral & concepto-CL :as concepto-TC] ejemplo-sin-clase]
+  (and (= (count concepto-CL) (count ejemplo-sin-clase))
+       (match-nature? [concepto-CL ejemplo-sin-clase])
        (->> ejemplo-sin-clase
-            (interleave (rest concepto-TC))
+            (interleave concepto-CL)
             (partition 2)
             (filter (partial apply match?))
             count
-            (<= (first concepto-TC)))))
+            (<= umbral))))
 
-(assert (and (not (match-TC [4 [soleado][**][10 40]   [si]] [soleado 30 40 si]))
-             (match-TC [3 [soleado][**][10 40]   [si]] [soleado 30 40 si])
-             (match-TC [2 [soleado][**][10 [40]] [si]] [soleado 30 40 si])
-             (not (match-TC [4 [soleado][**][10 40]   [si]] [soleado 30 25 no]))
-             (not (match-TC [3 [soleado][**][10 40]   [si]] [30 soleado 25 no]))))
+(assert (and (not (match-TC [4 [soleado][**][10 40] [si]] [soleado 30 40 si]))
+             (match-TC [3 [soleado][**][10 40]      [si]] [soleado 30 40 si])
+             (match-TC [2 [soleado][**][10 [40]]    [si]] [soleado 30 40 si])
+             (not (match-TC [4 [soleado][**][10 40] [si]] [soleado 30 25 no]))
+             (not (match-TC [3 [soleado][**][10 40] [si]] [30 soleado 25 no]))))
 
 ;; Ejercicio 2.21
 (defn TCi
   "Intérprete para tabla de criterios"
-  [concepto-TC ejemplo-sin-clase]
+  [[umbral & concepto-CL :as concepto-TC] ejemplo-sin-clase]
   (conj ejemplo-sin-clase (if (match-TC concepto-TC ejemplo-sin-clase) '+ '-)))
 
 (assert (= (TCi [4 [soleado] [**] [10 [40]] [si]] [soleado 30 40 si])
            [soleado 30 40 si '+]))
+
+;; Ejercicio 2.22
+;; TODO: contemplar las especializaciones en varios atributos
+(defn especializaciones-TC
+  [[umbral & concepto-CL :as concepto-TC] metadatos ejemplo]
+  (prn concepto-CL)
+  (concat (map #(cons (inc umbral) %) (especializaciones-CL (vec concepto-CL) metadatos ejemplo))
+          (map #(cons % concepto-CL) (range (inc umbral) (count concepto-CL)))))
+
+;; TODO: test me

@@ -1,7 +1,8 @@
 (ns amanas17.maia.p2-7
   (:use [amanas17.maia.symbols]
         [amanas17.maia.p1-1]
-        [amanas17.maia.p1-3]))
+        [amanas17.maia.p1-3]
+        [amanas17.maia.p2-2]))
 
 ;; Ejercicio 23
 (defn traducir
