@@ -105,4 +105,21 @@
                     [] [(cons (dec (count meta)) (concepto-CL-mas-general meta))] beam-size)]
      htc0)))
 
-(HTC ejemplos 10)
+(comment (prn (HTC ejemplos 1000)))
+
+;; Compare el concepto TC devuelto por HTC con el concepto CL obtenido por HGS
+;; y el concepto CL del ejercicio 3.
+;; El concepto del ejercicio 3 es: [[soleado] [20 30] [60 80]   [no] [contento] [**] [solvente]]
+;; El concepto con HGS es:         [[**]      [22 40] [79 +inf] [**] [contento] [**] [**]]
+;; El concepto con HTC es:
+;; TODO: porque aquí me quedo sin memoria
+
+
+
+;; Ejercicio 2.29
+;; Ejecute HTC mediante el conjunto de ejemplos agaricuslepiota. scm e ionosphere.scm
+;; (ver repositorio de material ejemplos UCI).
+;; Observe la traza del algoritmo y describa su comportamiento en presencia
+;; de estos nuevos ejemplos. Tambien compare el comportamiento de HTC con el de HGS.
+
+;; TODO: porque aquí me quedo sin memoria
