@@ -43,7 +43,12 @@
     (->> (range umbral (inc (count concepto-CL)))
          (map (fn [u] (map (partial cons u) specs-CL)))
          (apply concat)
+         (cons (cons (inc umbral) concepto-CL))
          distinct)
+    ;; (->> [umbral (inc umbral)]
+    ;;      (map (fn [u] (map (partial cons u) specs-CL)))
+    ;;      (apply concat)
+    ;;      (cons (cons (inc umbral) concepto-CL)))
     ;; (cons (cons (inc umbral) concepto-CL)
     ;;       (map (partial cons umbral) specs-CL))
     ))

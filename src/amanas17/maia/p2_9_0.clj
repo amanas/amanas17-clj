@@ -44,7 +44,7 @@
                          (map (partial apply cmp-concepto-CL))
                          (reduce +)
                          (+ u2 (* -1 u1)))]
-        (prn cmp-sum)
+ ;;       (prn cmp-sum)
         (cond (neg?  cmp-sum) -1
               (zero? cmp-sum)  0
               :else            1))))
@@ -84,7 +84,7 @@
                              (doall (pmap (fn [S] (when (> (score-TC S PSET NSET) (score-TC H PSET NSET))
                                                    (swap! NEW-SET conj S)))
                                           (->> (rest NSET)
-                                               (map (partial especializaciones-TC H meta))
+                                               (pmap (partial especializaciones-TC H meta))
                                                (apply concat)
                                                shuffle (take sample-size)
                                                (remove (partial = H)) distinct)))
@@ -136,7 +136,7 @@
 ;; En todo caso, los tres conceptos anteriores parecen bastante coherentes entre sí
 
 ;; El tiempo empleado por el algorítmo para procesar los ejemplos de prueba ha sido de
-;; 24 segundos con 7 iteraciones
+;; 2 segundos con 5 iteraciones
 
 
 ;; Ejercicio 2.29
@@ -146,7 +146,7 @@
 ;; de estos nuevos ejemplos. Tambien compare el comportamiento de HTC con el de HGS.
 
 (comment (time (prn (HTC ionosphere 1))))
-;; Para reducir la computación, utilizo un beam-size de 5
+;; Para reducir la computación, utilizo un beam-size de 1
 ;; Según HTC, este concepto que describe el dataset ionosphere es:
 ;; [34 [**] [**] [0 +inf] [**] [0.22222 +inf] [-1 +inf] [**] [-1 +inf]
 ;;     [**] [-1 +inf] [**] [**] [**] [-0.69707 +inf] [**] [-inf 1] [**]
@@ -155,10 +155,10 @@
 
 ;; El tiempo empleado por el algorítmo para procesar el dataset ionosphere ha sido de
 ;; 322 segundos con 13 iteraciones (muy elevado, teniendo en cuenta que hemos utilizado un
-;; beam-size de 5 y sample de 100)
+;; beam-size de 1)
 
-(comment (time (prn (HTC agaricus-lepiota 1 500))))
-;; Para reducir la computación, utilizo un beam-size de 5
+(comment (time (prn (HTC agaricus-lepiota 1 100))))
+;; Para reducir la computación, utilizo un beam-size de 1
 ;; Según HTC, el concepto que mejor describe el dataset agaricus-lepiota es:
 ;; ...
 ;; El tiempo empleado por el algorítmo para procesar el dataset agaricus-lepiota ha sido de
