@@ -31,10 +31,14 @@
        reverse))
 
 (defn naive-cmp-concepto-TC
+  "Compara dos conceptos TC. Devuelve:
+   1 si c1 es más general que c2 (en todos sus tests)
+  -1 si c1 es más específico que c2 (en todos sus tests)
+   0 en otro caso"
   [[u1 & CL1 :as TC1] [u2 & CL2 :as TC2]]
   (cond (> u1 u2) -1
-        (< u1 u2) 1
-        :else     (cmp-concepto-CL CL1 CL2)))
+        (< u1 u2)  1
+        :else      (cmp-concepto-CL CL1 CL2)))
 
 ;; Ejercicio 2.28
 (defn HTC0
@@ -49,28 +53,27 @@
   ([PSET NSET CLOSED-SET HSET beam-size]
    (let [CLOSED-SET (atom (set CLOSED-SET))
          OPEN-SET   (atom #{})]
-     (prn "First  [CLOSED-SET,HSET]=" [(count @CLOSED-SET) (count HSET)])
+     (prn "1 - HTC0 [CLOSED-SET,HSET]=" [(count @CLOSED-SET) (count HSET)])
      (doall
-      (map (fn [H]
+      (pmap (fn [H]
               (let [NEW-SET (atom #{})]
                 (doall
-                 (map (fn [S]
+                 (pmap (fn [S]
                          (when (> (score-TC S PSET NSET) (score-TC H PSET NSET))
                            (swap! NEW-SET conj S)))
                        (->> (rest NSET)
-                            (map (partial especializaciones-TC H (first NSET)))
+                            (pmap (partial especializaciones-TC H (first NSET)))
                             (apply concat)
                             (remove (partial = H))
                             distinct)))
                 (if (empty? @NEW-SET)
                   (swap! CLOSED-SET conj H)
                   (doall
-                   (map (fn [S]
+                   (pmap (fn [S]
                            (swap! OPEN-SET conj S)
                            (doall
-                            (map (fn [C]
+                            (pmap (fn [C]
                                     (when  (= -1 (naive-cmp-concepto-TC S C))
-                                      ;;(concepto-CL>= C S)
                                       (if (> (score-TC C PSET NSET)
                                              (score-TC S PSET NSET))
                                         (swap! OPEN-SET   without S)
@@ -78,11 +81,9 @@
                                   @CLOSED-SET)))
                          @NEW-SET)))))
             HSET))
-     (prn "Second [CLOSED-SET,OPEN-SET]=" [(count @CLOSED-SET) (count @OPEN-SET)])
+     ;; (prn "Second [CLOSED-SET,OPEN-SET]=" [(count @CLOSED-SET) (count @OPEN-SET)])
      (if (empty? @OPEN-SET)
        (let [result (->> @CLOSED-SET (sort-by-scoreTC-desc PSET NSET))]
-         (prn "Result" result)
-         (prn "Total" (count result))
          (first result))
        (let [BEST-SET (->> @OPEN-SET (into @CLOSED-SET) (sort-by-scoreTC-desc PSET NSET)
                            (take beam-size) set)
@@ -101,19 +102,22 @@
          ej+ (->> ejemplos rest (filter (comp (partial = '+) last)))
          ej- (->> ejemplos rest (filter (comp (partial = '-) last)))
          htc0 (HTC0 (cons meta ej+) (cons meta ej-)
-                    ;; todo: change 0 by (dec (count (first ejemplos)))
-                    [] [(cons (dec (count meta)) (concepto-CL-mas-general meta))] beam-size)]
+                    [] [(cons 0 (concepto-CL-mas-general meta))] beam-size)]
      htc0)))
 
 (comment (prn (HTC ejemplos 1000)))
-
 ;; Compare el concepto TC devuelto por HTC con el concepto CL obtenido por HGS
 ;; y el concepto CL del ejercicio 3.
-;; El concepto del ejercicio 3 es: [[soleado] [20 30] [60 80]   [no] [contento] [**] [solvente]]
-;; El concepto con HGS es:         [[**]      [22 40] [79 +inf] [**] [contento] [**] [**]]
-;; El concepto con HTC es:
-;; TODO: porque aquí me quedo sin memoria
+;; Mi buen concepto:        [  [soleado] [20 30]   [60 80]   [no] [contento] [**] [solvente]]
+;; El concepto con HGS es:  [  [**]      [22 40]   [79 +inf] [**] [contento] [**] [**]]
+;; El concepto con HTC es:  [7 [**]      [-inf 37] [65 +inf] [**] [contento] [**] [solvente]]
 
+;; El concepto devuelto por HTC es perfectamente coherente con el concepto que yo había
+;; definido como buen día para salir el campo
+;; De hecho, los tres conceptos anteriores parecen bastante coherentes entre sí
+
+;; El tiempo empleado por el algorítmo para procesar los ejemplos de prueba ha sido de
+;; ... segundos con ... iteraciones
 
 
 ;; Ejercicio 2.29
@@ -122,4 +126,17 @@
 ;; Observe la traza del algoritmo y describa su comportamiento en presencia
 ;; de estos nuevos ejemplos. Tambien compare el comportamiento de HTC con el de HGS.
 
-;; TODO: porque aquí me quedo sin memoria
+
+(commet (prn (HTC ionosphere 1)))
+;; Según HTC, el concepto que mejor describe el dataset ionosphere es:
+;; ...
+;; El tiempo empleado por el algorítmo para procesar el dataset ionosphere ha sido de
+;; ... segundos con ... iteraciones (muy elevado, teniendo en cuenta que hemos utilizado un
+;; beam-size de 1)
+
+(commet (prn (HTC agaricus-lepiota 1)))
+;; Según HTC, el concepto que mejor describe el dataset agaricus-lepiota es:
+;; ...
+;; El tiempo empleado por el algorítmo para procesar el dataset agaricus-lepiota ha sido de
+;; ... segundos con ... iteraciones (muy elevado, teniendo en cuenta que hemos utilizado un
+;; beam-size de 1)
