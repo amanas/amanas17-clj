@@ -60,12 +60,14 @@
                                         (->> (rest NSET)
                                              (pmap (partial especializaciones-TC H (first NSET)))
                                              (apply concat)
+                                             ;; O tomo un sample, o no acaba nunca - se va de computación
+                                             shuffle (take 200)
                                              (remove (partial = H))
                                              distinct)))
                            (if (empty? @NEW-SET)
                              (swap! CLOSED-SET conj H)
                              (doall (pmap (fn [S] (swap! OPEN-SET conj S)
-                                            (doall (pmap (fn [C] (when  (<= (naive-cmp-concepto-TC S C) 0)
+                                            (doall (pmap (fn [C] (when  (< (naive-cmp-concepto-TC S C) 0)
                                                                   (if (> (score-TC C PSET NSET)
                                                                          (score-TC S PSET NSET))
                                                                     (swap! OPEN-SET   without S)
@@ -102,11 +104,12 @@
 ;; y el concepto CL del ejercicio 3.
 ;; Mi buen concepto:        [  [soleado] [20 30]   [60 80]   [no] [contento] [**] [solvente]]
 ;; El concepto con HGS es:  [  [**]      [22 40]   [79 +inf] [**] [contento] [**] [**]]
-;; El concepto con HTC es:  [7 [**]      [18 37]   [79 +inf] [**] [contento] [**] [**]]
+;; El concepto con HTC es:  [7 [**]      [-inf 35] [65 +inf] [**] [contento] [**] [solvente]]
 
 ;; El concepto devuelto por HTC es perfectamente coherente con el concepto que yo había
-;; definido como buen día para salir el campo
-;; De hecho, los tres conceptos anteriores parecen bastante coherentes entre sí
+;; definido como buen día para salir el campo. De hecho es bastante más parecido que el devuelto
+;; por HGS.
+;; En todo caso, los tres conceptos anteriores parecen bastante coherentes entre sí
 
 ;; El tiempo empleado por el algorítmo para procesar los ejemplos de prueba ha sido de
 ;; 24 segundos con 7 iteraciones
@@ -119,19 +122,21 @@
 ;; de estos nuevos ejemplos. Tambien compare el comportamiento de HTC con el de HGS.
 
 
-(comment (prn (HTC ionosphere 1)))
+(comment (time (prn (HTC ionosphere 5))))
+;; Para acoratar la computación, utilizo un beam-size de 5
 ;; Según HTC, el concepto que mejor describe el dataset ionosphere es:
-;; ...
-;; El tiempo empleado por el algorítmo para procesar el dataset ionosphere ha sido de
-;; ... segundos con ... iteraciones (muy elevado, teniendo en cuenta que hemos utilizado un
-;; beam-size de 1)
+;; [34 [**] [**] [0.08696 +inf] [**] [0.0625 +inf] [-1 1] [**] [-1 +inf]
+;; [**] [-1 +inf] [**] [**] [**] [-0.8209 +inf] [**] [-0.97515 1] [**]
+;; [-1 +inf] [**] [**] [**] [**] [**] [**] [**] [**] [**] [**] [-1 +inf]
+;; [**] [**] [**] [**] [**]]
 
-(comment (prn (HTC agaricus-lepiota 1)))
+;; El tiempo empleado por el algorítmo para procesar el dataset ionosphere ha sido de
+;; 274 segundos con 14 iteraciones (muy elevado, teniendo en cuenta que hemos utilizado un
+;; beam-size de 5)
+
+(comment (time (prn (HTC agaricus-lepiota 5))))
 ;; Según HTC, el concepto que mejor describe el dataset agaricus-lepiota es:
 ;; ...
 ;; El tiempo empleado por el algorítmo para procesar el dataset agaricus-lepiota ha sido de
 ;; ... segundos con ... iteraciones (muy elevado, teniendo en cuenta que hemos utilizado un
 ;; beam-size de 1)
-
-
-(time (prn (HTC ejemplos 1000)))

@@ -49,8 +49,9 @@
         c (map (fn [s]  (cons (inc umbral) s)) specs-CL)]
     a))
 
+
 ;; TODO: test me
 ;; (def meta (first ejemplos))
 ;; (def ej+  (->> ejemplos rest (filter (comp (partial = '+) last))))
 ;; (def ej- (->> ejemplos rest (filter (comp (partial = '-) last))))
-;; (take 5 (drop 25 (especializaciones-TC [0 [**] [**] [**] [**] [**] [**] [**]] meta (first ej-))))
+;; (especializaciones-TC [0 [**] [**] [**] [**] [**] [**] [**]] meta (first ej-))
