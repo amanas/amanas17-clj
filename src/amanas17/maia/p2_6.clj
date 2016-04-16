@@ -39,15 +39,14 @@
 ;; TODO: contemplar las especializaciones en varios atributos
 (defn especializaciones-TC
   [[umbral & concepto-CL :as concepto-TC] metadatos ejemplo]
-  (let [specs-CL (especializaciones-CL (vec concepto-CL) metadatos ejemplo)
-        a (->> (range umbral (inc (count concepto-CL)))
-               (map (fn [u] (map (partial cons u) specs-CL)))
-               (apply concat)
-               distinct)
-        b (concat (map (fn [s] (cons umbral s)) specs-CL)
-                  (map (fn [s] (cons (inc umbral) s)) specs-CL))
-        c (map (fn [s]  (cons (inc umbral) s)) specs-CL)]
-    a))
+  (let [specs-CL (especializaciones-CL (vec concepto-CL) metadatos ejemplo)]
+    (->> (range umbral (inc (count concepto-CL)))
+         (map (fn [u] (map (partial cons u) specs-CL)))
+         (apply concat)
+         distinct)
+    ;; (cons (cons (inc umbral) concepto-CL)
+    ;;       (map (partial cons umbral) specs-CL))
+    ))
 
 
 ;; TODO: test me

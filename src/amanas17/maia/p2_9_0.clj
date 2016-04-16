@@ -30,15 +30,35 @@
        (map first)
        reverse))
 
-(defn naive-cmp-concepto-TC
+;; TODO: test me
+(defn cmp-concepto-TC
   "Compara dos conceptos TC. Devuelve:
    1 si TC1 es más general que TC2
   -1 si TC1 es más específico que TC2
    0 en otro caso"
   [[u1 & CL1 :as TC1] [u2 & CL2 :as TC2]]
-  (cond (> u1 u2) -1
-        (< u1 u2)  1
-        :else      (cmp-concepto-CL CL1 CL2)))
+  (if (= u1 u2) (cmp-concepto-CL CL1 CL2)
+      (let [cmp-sum (->> (interleave CL1 CL2)
+                         (map vector)
+                         (partition 2)
+                         (map (partial apply cmp-concepto-CL))
+                         (reduce +)
+                         (+ u2 (* -1 u1)))]
+        (prn cmp-sum)
+        (cond (neg?  cmp-sum) -1
+              (zero? cmp-sum)  0
+              :else            1))))
+
+(assert (and (=  0 (cmp-concepto-TC [0 [**]] [0 [**]]))
+             (= -1 (cmp-concepto-TC [0 []]   [0 [**]]))
+             (=  1 (cmp-concepto-TC [0 [**]] [0 []]))
+             (=  0 (cmp-concepto-TC [1 [**]] [1 [**]]))
+             (= -1 (cmp-concepto-TC [1 [**]] [0 [**]]))
+             (=  1 (cmp-concepto-TC [0 [**]] [1 [**]]))
+             (=  0 (cmp-concepto-TC [0 []]   [1 [**]]))
+             (=  0 (cmp-concepto-TC [0 []]   [1 ['a]]))
+             (= -1 (cmp-concepto-TC [0 []]   [0 ['a]]))
+             (=  0 (cmp-concepto-TC [0 ['b]] [0 ['a]]))))
 
 ;; Ejercicio 2.28
 (defn HTC0
@@ -47,35 +67,39 @@
    Devuelve el concepto que satisface la mayoría de los ejemplos
    positivos y excluye la mayoría de los negativos.
    Asume que los conjuntos PSET y NSET tienen cabecera de atributos
-   Sobrecargo la función para que admita como parámetro el beam-size"
+   Sobrecargo la función para que admita como parámetro el beam-size
+   Los conjuntos ionosphere y agaricus-lepiota tienen muchos ejemplos,
+   por lo que para que el algoritmo acabe sin desbordarse tengo que tomar
+   samples"
   ([PSET NSET CLOSED-SET HSET]
-   (HTC0 PSET NSET CLOSED-SET HSET 10))
-  ([PSET NSET CLOSED-SET HSET beam-size]
+   (HTC0 PSET NSET CLOSED-SET HSET 10 100))
+  ([PSET NSET CLOSED-SET HSET beam-size sample-size]
    (let [CLOSED-SET (atom (set CLOSED-SET))
          OPEN-SET   (atom #{})]
-     (prn "1 - HTC0 [CLOSED-SET,HSET]=" [(count @CLOSED-SET) (count HSET)])
-     (doall (pmap (fn [H] (let [NEW-SET (atom #{})]
-                           (doall (pmap (fn [S] (when (> (score-TC S PSET NSET) (score-TC H PSET NSET))
-                                                 (swap! NEW-SET conj S)))
-                                        (->> (rest NSET)
-                                             (pmap (partial especializaciones-TC H (first NSET)))
-                                             (apply concat)
-                                             ;; O tomo un sample, o no acaba nunca - se va de computación
-                                             shuffle (take 200)
-                                             (remove (partial = H))
-                                             distinct)))
-                           (if (empty? @NEW-SET)
-                             (swap! CLOSED-SET conj H)
-                             (doall (pmap (fn [S] (swap! OPEN-SET conj S)
-                                            (doall (pmap (fn [C] (when  (< (naive-cmp-concepto-TC S C) 0)
-                                                                  (if (> (score-TC C PSET NSET)
-                                                                         (score-TC S PSET NSET))
-                                                                    (swap! OPEN-SET   without S)
-                                                                    (swap! CLOSED-SET without C))))
-                                                         @CLOSED-SET)))
-                                          @NEW-SET)))))
-                  HSET))
-     (prn "2 - HTC0 [CLOSED-SET,OPEN-SET]=" [(count @CLOSED-SET) (count @OPEN-SET)])
+     (prn "1 - HTC0 [CLOSED-SET,HSET]" [(count @CLOSED-SET) (count HSET)])
+     (let [meta (first PSET)
+           PSET (cons meta (take sample-size (shuffle (rest PSET))))
+           NSET (cons meta (take sample-size (shuffle (rest NSET))))]
+       (doall (pmap (fn [H] (let [NEW-SET (atom #{})]
+                             (doall (pmap (fn [S] (when (> (score-TC S PSET NSET) (score-TC H PSET NSET))
+                                                   (swap! NEW-SET conj S)))
+                                          (->> (rest NSET)
+                                               (map (partial especializaciones-TC H meta))
+                                               (apply concat)
+                                               shuffle (take sample-size)
+                                               (remove (partial = H)) distinct)))
+                             (if (empty? @NEW-SET)
+                               (swap! CLOSED-SET conj H)
+                               (doall (pmap (fn [S] (swap! OPEN-SET conj S)
+                                              (doall (pmap (fn [C] (when  (< (cmp-concepto-TC S C) 0)
+                                                                    (if (> (score-TC C PSET NSET)
+                                                                           (score-TC S PSET NSET))
+                                                                      (swap! OPEN-SET   without S)
+                                                                      (swap! CLOSED-SET without C))))
+                                                           @CLOSED-SET)))
+                                            @NEW-SET)))))
+                    HSET)))
+     (prn "2 - HTC0 [CLOSED-SET,OPEN-SET]" [(count @CLOSED-SET) (count @OPEN-SET)])
      (if (empty? @OPEN-SET)
        (let [result (->> @CLOSED-SET (sort-by-scoreTC-desc PSET NSET))]
          (first result))
@@ -83,28 +107,28 @@
                            (take beam-size) set)
              CLOSED-SET (filter BEST-SET @CLOSED-SET)
              OPEN-SET   (filter BEST-SET @OPEN-SET)]
-         (HTC0 PSET NSET CLOSED-SET OPEN-SET beam-size))))))
+         (HTC0 PSET NSET CLOSED-SET OPEN-SET beam-size sample-size))))))
 
 
 (defn HTC
   "Devuelve un concepto al azar del resultado de aplicar HTC0 a los ejemplos
    tomando el concepto más específico como CSET y el más general como HSET"
-  ([ejemplos]
-   (HTC ejemplos 10))
-  ([ejemplos beam-size]
+  ([ejemplos] (HTC ejemplos 50))
+  ([ejemplos beam-size] (HTC ejemplos beam-size 10000))
+  ([ejemplos beam-size sample-size]
    (let [meta (first ejemplos)
-         ej+ (->> ejemplos rest (filter (comp (partial = '+) last)))
-         ej- (->> ejemplos rest (filter (comp (partial = '-) last)))
-         htc0 (HTC0 (cons meta ej+) (cons meta ej-)
-                    [] [(cons 0 (concepto-CL-mas-general meta))] beam-size)]
+         ej+ (cons meta  (->> ejemplos rest (filter (comp (partial = '+) last))))
+         ej- (cons meta (->> ejemplos rest (filter (comp (partial = '-) last))))
+         concepto-TC-mas-general (cons 0 (concepto-CL-mas-general meta))
+         htc0 (HTC0 ej+ ej-  [] [concepto-TC-mas-general] beam-size sample-size)]
      htc0)))
 
-(comment (time (prn (HTC ejemplos 1000))))
+(comment (time (prn (HTC ejemplos))))
 ;; Compare el concepto TC devuelto por HTC con el concepto CL obtenido por HGS
 ;; y el concepto CL del ejercicio 3.
 ;; Mi buen concepto:        [  [soleado] [20 30]   [60 80]   [no] [contento] [**] [solvente]]
 ;; El concepto con HGS es:  [  [**]      [22 40]   [79 +inf] [**] [contento] [**] [**]]
-;; El concepto con HTC es:  [7 [**]      [-inf 35] [65 +inf] [**] [contento] [**] [solvente]]
+;; El concepto con HTC es:  [7 [**]      [-inf 37] [65 +inf] [**] [contento] [**] [solvente]]
 
 ;; El concepto devuelto por HTC es perfectamente coherente con el concepto que yo había
 ;; definido como buen día para salir el campo. De hecho es bastante más parecido que el devuelto
@@ -116,25 +140,25 @@
 
 
 ;; Ejercicio 2.29
-;; Ejecute HTC mediante el conjunto de ejemplos agaricuslepiota. scm e ionosphere.scm
+;; Ejecute HTC mediante el conjunto de ejemplos agaricuslepiota.scm e ionosphere.scm
 ;; (ver repositorio de material ejemplos UCI).
 ;; Observe la traza del algoritmo y describa su comportamiento en presencia
 ;; de estos nuevos ejemplos. Tambien compare el comportamiento de HTC con el de HGS.
 
-
-(comment (time (prn (HTC ionosphere 5))))
-;; Para acoratar la computación, utilizo un beam-size de 5
-;; Según HTC, el concepto que mejor describe el dataset ionosphere es:
-;; [34 [**] [**] [0.08696 +inf] [**] [0.0625 +inf] [-1 1] [**] [-1 +inf]
-;; [**] [-1 +inf] [**] [**] [**] [-0.8209 +inf] [**] [-0.97515 1] [**]
-;; [-1 +inf] [**] [**] [**] [**] [**] [**] [**] [**] [**] [**] [-1 +inf]
-;; [**] [**] [**] [**] [**]]
+(comment (time (prn (HTC ionosphere 1))))
+;; Para reducir la computación, utilizo un beam-size de 5
+;; Según HTC, este concepto que describe el dataset ionosphere es:
+;; [34 [**] [**] [0 +inf] [**] [0.22222 +inf] [-1 +inf] [**] [-1 +inf]
+;;     [**] [-1 +inf] [**] [**] [**] [-0.69707 +inf] [**] [-inf 1] [**]
+;;     [-1 +inf] [**] [**] [**] [**] [**] [**] [**] [**] [**] [-1 +inf]
+;;     [-1 +inf] [**] [**] [**] [**] [-1 +inf]]
 
 ;; El tiempo empleado por el algorítmo para procesar el dataset ionosphere ha sido de
-;; 274 segundos con 14 iteraciones (muy elevado, teniendo en cuenta que hemos utilizado un
-;; beam-size de 5)
+;; 322 segundos con 13 iteraciones (muy elevado, teniendo en cuenta que hemos utilizado un
+;; beam-size de 5 y sample de 100)
 
-(comment (time (prn (HTC agaricus-lepiota 5))))
+(comment (time (prn (HTC agaricus-lepiota 1 500))))
+;; Para reducir la computación, utilizo un beam-size de 5
 ;; Según HTC, el concepto que mejor describe el dataset agaricus-lepiota es:
 ;; ...
 ;; El tiempo empleado por el algorítmo para procesar el dataset agaricus-lepiota ha sido de
