@@ -10,7 +10,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Inducción de conceptos UU ;;
+;; Inducción de conceptos TC ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Ejercicio 2.27
@@ -145,6 +145,67 @@
 ;; Observe la traza del algoritmo y describa su comportamiento en presencia
 ;; de estos nuevos ejemplos. Tambien compare el comportamiento de HTC con el de HGS.
 
+<<<<<<< HEAD
+;; TODO: porque aquí me quedo sin memoria
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Inducción de conceptos LUU ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Ejercicio 2.30
+(defn PRM
+  "Algoritmo de inducción incremental de umbrales utilizando búsqueda
+   por gradiente descendente"
+  ([concepto-UU ejemplos]
+   (PRM concepto-UU ejemplos 1))
+  ([concepto-UU ejemplos revision-rate]
+   (loop [[ATTS [& values] :as H] concepto-UU
+          [I & more] (rest ejemplos)]
+     (if (empty? more) H
+         (let [C (last I)
+               P (last (LUUi H (butlast I)))
+               S (cond (and  (= '- P) (= '+ C))  1
+                       (and  (= '+ P) (= '- C)) -1
+                       :else nil)
+               new-H (if (= C P) H
+                         (let [new-values (map (fn [i] (+ (nth values i)
+                                                         (* S revision-rate
+                                                            (traducir (nth ATTS i) (nth I i)))))
+                                               (range (dec (count values))))
+                               new-umbral (+ (last values) (* S revision-rate))]
+                           [ATTS (conj new-values new-umbral)]))]
+           (recur new-H more))))))
+
+;; Compruebo el funcionamiento de PRM con los ejemplos
+(comment (PRM [(first ejemplos) '(1 1 1 1 1 1 1 5)] ejemplos))
+;; El resultado es:
+;; [[[perspectiva [soleado nublado lluvioso]]
+;;   [temperatura numerico]
+;;   [humedad numerico]
+;;   [viento [no si]]
+;;   [animo [contento triste]]
+;;   [estres [relajado estresado]]
+;;   [dinero [solvente insuficiente]]
+;;   [clase [+ -]]]
+;;  [15 27 92 -1 -16 22 -4 5]]
+
+(he-tardado 120 2.30)
+
+
+;; Ejercicio 2.31
+(defn PCP
+  "Implementación del procedimiento de convergencia de perceptrón"
+  ([ejemplos]
+   (PCP ejemplos 1 1000))
+  ([[meta & instances :as ejemplos] revision-rate maximun-iterations]
+   (loop [H (nuevo-conceptoUU meta 1)]
+     H)
+   ))
+
+(PCP ejemplos)
+=======
 (comment (time (prn (HTC ionosphere 1))))
 ;; Para reducir la computación, utilizo un beam-size de 1
 ;; Según HTC, este concepto que describe el dataset ionosphere es:
@@ -164,3 +225,4 @@
 ;; El tiempo empleado por el algorítmo para procesar el dataset agaricus-lepiota ha sido de
 ;; ... segundos con ... iteraciones (muy elevado, teniendo en cuenta que hemos utilizado un
 ;; beam-size de 1)
+>>>>>>> branch 'master' of https://github.com/amanas/amanas17-clj.git
