@@ -2,6 +2,7 @@
   (:use [amanas17.maia.symbols]
         [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
+        [amanas17.maia.p1-6]
         [amanas17.maia.p2-1]
         [amanas17.maia.p2-2]
         [amanas17.maia.p2-4]
@@ -10,7 +11,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Inducción de conceptos TC ;;
+;; Inducción de conceptos UU ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Ejercicio 2.27
@@ -44,21 +45,9 @@
                          (map (partial apply cmp-concepto-CL))
                          (reduce +)
                          (+ u2 (* -1 u1)))]
- ;;       (prn cmp-sum)
         (cond (neg?  cmp-sum) -1
               (zero? cmp-sum)  0
               :else            1))))
-
-(assert (and (=  0 (cmp-concepto-TC [0 [**]] [0 [**]]))
-             (= -1 (cmp-concepto-TC [0 []]   [0 [**]]))
-             (=  1 (cmp-concepto-TC [0 [**]] [0 []]))
-             (=  0 (cmp-concepto-TC [1 [**]] [1 [**]]))
-             (= -1 (cmp-concepto-TC [1 [**]] [0 [**]]))
-             (=  1 (cmp-concepto-TC [0 [**]] [1 [**]]))
-             (=  0 (cmp-concepto-TC [0 []]   [1 [**]]))
-             (=  0 (cmp-concepto-TC [0 []]   [1 ['a]]))
-             (= -1 (cmp-concepto-TC [0 []]   [0 ['a]]))
-             (=  0 (cmp-concepto-TC [0 ['b]] [0 ['a]]))))
 
 ;; Ejercicio 2.28
 (defn HTC0
@@ -135,7 +124,7 @@
 ;; por HGS.
 ;; En todo caso, los tres conceptos anteriores parecen bastante coherentes entre sí
 
-;; El tiempo empleado por el algorítmo para procesar los ejemplos de prueba ha sido de
+;; El tiempo empleado por el algoritmo para procesar los ejemplos de prueba ha sido de
 ;; 2 segundos con 5 iteraciones
 
 
@@ -145,8 +134,30 @@
 ;; Observe la traza del algoritmo y describa su comportamiento en presencia
 ;; de estos nuevos ejemplos. Tambien compare el comportamiento de HTC con el de HGS.
 
-<<<<<<< HEAD
-;; TODO: porque aquí me quedo sin memoria
+(comment (time (prn (HTC ionosphere 1))))
+;; Para reducir la computación, utilizo un beam-size de 1
+;; Según HTC, este concepto que describe el dataset ionosphere es:
+;; [34 [**] [**] [0 +inf] [**] [0.22222 +inf] [-1 +inf] [**] [-1 +inf]
+;;     [**] [-1 +inf] [**] [**] [**] [-0.69707 +inf] [**] [-inf 1] [**]
+;;     [-1 +inf] [**] [**] [**] [**] [**] [**] [**] [**] [**] [-1 +inf]
+;;     [-1 +inf] [**] [**] [**] [**] [-1 +inf]]
+
+;; El tiempo empleado por el algoritmo para procesar el dataset ionosphere ha sido de
+;; 322 segundos con 13 iteraciones (muy elevado, teniendo en cuenta que hemos utilizado un
+;; beam-size de 1)
+
+(comment (time (prn (HTC agaricus-lepiota 1 100))))
+;; Para reducir la computación, utilizo un beam-size de 1
+;; Según HTC, el concepto que mejor describe el dataset agaricus-lepiota es:
+;; ...
+;; El tiempo empleado por el algoritmo para procesar el dataset agaricus-lepiota ha sido de
+;; ... segundos con ... iteraciones (muy elevado, teniendo en cuenta que hemos utilizado un
+;; beam-size de 1)
+;; TODO
+
+
+
+
 
 
 
@@ -157,7 +168,8 @@
 ;; Ejercicio 2.30
 (defn PRM
   "Algoritmo de inducción incremental de umbrales utilizando búsqueda
-   por gradiente descendente"
+   por gradiente descendente.
+   Asume que ejemplos tiene cabecera de atributos"
   ([concepto-UU ejemplos]
    (PRM concepto-UU ejemplos 1))
   ([concepto-UU ejemplos revision-rate]
@@ -178,8 +190,10 @@
                            [ATTS (conj new-values new-umbral)]))]
            (recur new-H more))))))
 
+(nuevo-conceptoUU (first ejemplos) 1)
+
 ;; Compruebo el funcionamiento de PRM con los ejemplos
-(comment (PRM [(first ejemplos) '(1 1 1 1 1 1 1 5)] ejemplos))
+(comment (PRM (nuevo-conceptoUU (first ejemplos) 1) ejemplos))
 ;; El resultado es:
 ;; [[[perspectiva [soleado nublado lluvioso]]
 ;;   [temperatura numerico]
@@ -189,40 +203,102 @@
 ;;   [estres [relajado estresado]]
 ;;   [dinero [solvente insuficiente]]
 ;;   [clase [+ -]]]
-;;  [15 27 92 -1 -16 22 -4 5]]
+;;  (67.3119909365632 -49.63241875963577 71.07636919605358 -3.6134332324820093
+;;   -15.60308212217015 22.958175819659417 -4.640461642714797 -52.24932562089108)
 
 (he-tardado 120 2.30)
 
 
 ;; Ejercicio 2.31
 (defn PCP
-  "Implementación del procedimiento de convergencia de perceptrón"
-  ([ejemplos]
-   (PCP ejemplos 1 1000))
-  ([[meta & instances :as ejemplos] revision-rate maximun-iterations]
-   (loop [H (nuevo-conceptoUU meta 1)]
-     H)
-   ))
+  "Implementación del procedimiento de convergencia de perceptrón.
+   Inducción no incremental de unidades umbral lineales mediante la aplicación
+   iterativa de PRM al conjunto de entrenamiento hasta que produce un LTU sin errores
+   Devuelve una LUU"
+  ([ejemplos] (PCP ejemplos 1 1000))
+  ([[meta & instances :as ejemplos] revision-rate max-iterations]
+   (loop [H (nuevo-conceptoUU meta 1)
+          COUNT max-iterations]
+     (if (= 0 COUNT) H
+         (let [NO-ERRORS (every? true? (map (fn [i] (= (last i) (last (LUUi H (butlast i))))) instances))]
+           (if NO-ERRORS H
+               (recur (PRM H ejemplos revision-rate) (dec COUNT))))))))
 
-(PCP ejemplos)
-=======
-(comment (time (prn (HTC ionosphere 1))))
-;; Para reducir la computación, utilizo un beam-size de 1
-;; Según HTC, este concepto que describe el dataset ionosphere es:
-;; [34 [**] [**] [0 +inf] [**] [0.22222 +inf] [-1 +inf] [**] [-1 +inf]
-;;     [**] [-1 +inf] [**] [**] [**] [-0.69707 +inf] [**] [-inf 1] [**]
-;;     [-1 +inf] [**] [**] [**] [**] [**] [**] [**] [**] [**] [-1 +inf]
-;;     [-1 +inf] [**] [**] [**] [**] [-1 +inf]]
 
-;; El tiempo empleado por el algorítmo para procesar el dataset ionosphere ha sido de
-;; 322 segundos con 13 iteraciones (muy elevado, teniendo en cuenta que hemos utilizado un
-;; beam-size de 1)
+;; El resultado con mis ejemplos de entrenamiento es el siguiente
+(comment (prn (PCP ejemplos)))
+;; [[[perspectiva [soleado nublado lluvioso]]
+;;   [temperatura numerico]
+;;   [humedad numerico]
+;;   [viento [no si]]
+;;   [animo [contento triste]]
+;;   [estres [relajado estresado]]
+;;   [dinero [solvente insuficiente]]
+;;   [clase [+ -]]]
+;;   (-47.37829030182132 27.696804615199255 6.785894381315444 73.67953905361594
+;;    64.16589707127343 61.34662475166874 -42.626757192216644 60.785578084347975)
 
-(comment (time (prn (HTC agaricus-lepiota 1 100))))
-;; Para reducir la computación, utilizo un beam-size de 1
-;; Según HTC, el concepto que mejor describe el dataset agaricus-lepiota es:
-;; ...
-;; El tiempo empleado por el algorítmo para procesar el dataset agaricus-lepiota ha sido de
-;; ... segundos con ... iteraciones (muy elevado, teniendo en cuenta que hemos utilizado un
-;; beam-size de 1)
->>>>>>> branch 'master' of https://github.com/amanas/amanas17-clj.git
+(he-tardado 120 2.31)
+
+
+
+
+;; Ejercicio 2.32
+
+(defn LMS
+  "Implementación del procedimiento de mínimos cuadrados.
+   Inducción no incremental de unidades umbral lineales usando gradiente descendente
+   con la intención de minimizar el error cuadrático medio entre predicciones
+   y observaciones. LMS asume que el valor del umbral es siempre 1.
+   Devuelve una LUU"
+  ([ejemplos] (LMS ejemplos 1 1 1000 1))
+  ([[meta & instances :as ejemplos] gain  momentum max-iterations min-error]
+   (loop [deltas (repeat (count meta) 0)
+          [meta weights :as H] (nuevo-conceptoUU meta 0.5)
+          COUNT max-iterations]
+     (if (= 0 COUNT) H
+         (let [TOTAL-ERROR (atom 0)]
+           (doall (for [I instances]
+                    (let [Oi (traducir (last meta) (last I))
+                          Pi (traducir (last meta) (last (LUUi H (butlast I))))]
+                      (swap! TOTAL-ERROR + (Math/pow (- Oi Pi) 2)))))
+           (if (< @TOTAL-ERROR min-error) H
+               (let [new-DW-fn (fn [i] (let [W (nth weights i)
+                                            A (nth meta i)
+                                            D (nth deltas i)
+                                            GRADIENT (atom 0)]
+                                        (doall (for [I instances]
+                                                 (let [Oi (traducir (last meta) (last I))
+                                                       Pi (traducir (last meta) (last (LUUi H (butlast I))))
+                                                       d (* Pi (- 1 Pi) (- Oi Pi))
+                                                       v (traducir A (nth I i))]
+                                                   (swap! GRADIENT + (* gain d v)))))
+                                        [(+ @GRADIENT (* momentum D)) (+ W @GRADIENT (* momentum D))]))
+                     new-DWs (map new-DW-fn (range (count weights)))]
+                 (recur (map first new-DWs) [meta (map second new-DWs)] (dec COUNT)))))))))
+
+;; El resultado con mis ejemplos de entrenamiento es el siguiente
+(comment (LMS ejemplos))
+;; [[[perspectiva [soleado nublado lluvioso]]
+;;   [temperatura numerico]
+;;   [humedad numerico]
+;;   [viento [no si]]
+;;   [animo [contento triste]]
+;;   [estres [relajado estresado]]
+;;   [dinero [solvente insuficiente]]
+;;   [clase [+ -]]]
+;;  (0.4181279262394981 0.30200783383821217 -0.29679458512083445 0.3223618080047319
+;;   0.34489402480405973 0.13501324485491817 0.4568126442095787 0.33359786235524613)]
+
+(he-tardado 90 2.32)
+
+;; Ejercicio 2.33
+;; Compruebe la diferencia de precisión entre PCP y LMS
+;; (utilice la función cross-validation con folds a 10) en los conjuntos de
+;; ejemplos buen día para salir al campo, agaricus-lepiota.scm e ionosphere.scm.
+
+(comment)
+(cross-validation PCP LUUi ejemplos 5)
+
+
+;; ¿Encuentra diferencias significativas?

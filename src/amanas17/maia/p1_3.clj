@@ -32,6 +32,7 @@
   "Concatena dos listas
    Asume que las dos listas tienen descripción de atributos
    La lista devuelta también tiene cabecera con descripción de atributos"
-  [xs1 xs2] (into xs1 (rest xs2)))
+  ([xs1] xs1)
+  ([xs1 xs2] (into xs1 (rest xs2))))
 
 (he-tardado 60 1.11)

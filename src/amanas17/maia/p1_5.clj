@@ -181,10 +181,10 @@
   (take 10 (repeatedly #(clasifica-con-A1-A1i ejemplos2))))
 
 ;; y haciendo la media, sólo para poder comentar con más rigor este ejercicio,
-(->> diez-repeticiones-A1-A1i
-     ((juxt (partial map first) (partial map second)))
-     (map (partial apply +))
-     (map #(/ % 10)))
+(comment (->> diez-repeticiones-A1-A1i
+              ((juxt (partial map first) (partial map second)))
+              (map (partial apply +))
+              (map #(/ % 10))))
 ;; obtengo que la precisión media es 2/5 y el error medio es 3/5.
 ;; Nótese que este ha sido el resultado de una ejecución cualquiera y que
 ;; cualquier otra podrá variar.
