@@ -79,7 +79,8 @@
         aciertos (->> [(rest ejemplos) (rest extension)]
                       (apply interleave)
                       (partition 2)
-                      (filter (fn [[ej ex]](= (last ej) (last ex))))                                         count)]
+                      (filter (fn [[ej ex]](= (last ej) (last ex))))
+                      count)]
     (/ aciertos todos)))
 
 (defn calcula-error

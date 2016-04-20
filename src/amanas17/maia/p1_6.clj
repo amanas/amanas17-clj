@@ -46,7 +46,7 @@
     - y evaluar con el conjunto evaluacion"
   [entrenador interprete entrenamiento evaluacion]
   (let [concepto (entrenador entrenamiento)
-        extension (map (partial interprete concepto) (map butlast (rest evaluacion)))]
+        extension (concat [(first evaluacion)] (map (partial interprete concepto) (rest (map butlast evaluacion))))]
     (calcula-precision evaluacion extension)))
 
 (he-tardado 90 1.23)
@@ -64,7 +64,6 @@
   (let [flds (folds entrenamiento n-folds)
         entre-eval-groups (for [n (range n-folds)]
                             (let [entrenamiento (->> (drop (inc n) flds)
-                                                     ;; TODO: esto no está bien
                                                      (into (take n flds))
                                                      (reduce mezclar))
                                   evaluacion (nth flds n)]

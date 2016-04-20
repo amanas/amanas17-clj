@@ -297,8 +297,9 @@
 ;; (utilice la función cross-validation con folds a 10) en los conjuntos de
 ;; ejemplos buen día para salir al campo, agaricus-lepiota.scm e ionosphere.scm.
 
-(comment)
-(cross-validation PCP LUUi ejemplos 5)
+(comment (cross-validation PCP LUUi ejemplos 10))
 
 
 ;; ¿Encuentra diferencias significativas?
+
+;; '(* (inf 0) b c + *)
