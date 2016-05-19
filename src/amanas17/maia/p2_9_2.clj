@@ -125,19 +125,39 @@
   "Devuelve una lista con las probabilidad de la clase por atributo.
    [P(c|vi)...]"
   [clase conceptoNB ejemplo-sin-clase]
-  (let [[c n & more] (first (filter (fn [[clazz & more]] (= clase clazz)) conceptoNB))]
+  (let [[c+ n+ & more+] (first (filter (fn [[clazz & more]] (= clase clazz)) conceptoNB))
+        [c- n- & more-] (first (remove (fn [[clazz & more]] (= clase clazz)) conceptoNB))]
     (loop [probs []
-           [att & atts] ejemplo-sin-clase
-           [dist & dists] more]
-      (if (nil? att)
-        probs
-        (do (if (= 'numerico (first dist))
-              (let [[_ x x2] dist
-                    m (media x n)]
-                (prn "num" (norm-pdf att m (varianza x2 m n))))
-              (prn "nom"))
-            (recur (concat probs [1]) atts dists)))
-      ;;    (for [i (range)])
-      )))
+           [i & is] ejemplo-sin-clase
+           [dist+ & dists+] more+
+           [dist- & dists-] more-]
+      (if (nil? i) probs
+          (if (number? i)
+            (let [[_ x+ x+2] dist+
+                  [_ x- x-2] dist-
+                  m+ (media x+ n+)
+                  v+ (varianza x+2 m+ n+)
+                  m- (media x- n-)
+                  v- (varianza x-2 m- n-)
+                  n (+ n+ n-)
+                  x (+ x+ x-)
+                  x2 (+ x+2 x-2)
+                  m (media x n)
+                  v (varianza x2 m n)
+                  Pi|c (norm-pdf i m+ v+)
+                  Pc (/ n+ (+ n+ n-))
+                  Pi (norm-pdf i m v)
+                  Pc|i (/ (* Pi|c Pc) Pi)]
+              (recur (concat probs [Pc|i]) is dists+ dists-))
+            (let [s+ (second (first (filter (fn [[a b]] (= a i)) dist+)))
+                  tot+ (reduce + (map second dist+))
+                  s- (second (first (filter (fn [[a b]] (= a i)) dist-)))
+                  tot- (reduce + (map second dist-))
+                  Pi|c (/ s+ tot+)
+                  Pc (/ n+ (+ n+ n-))
+                  Pi (/ (+ s+ s-) (+ tot+ tot-))
+                  Pc|i (/ (* Pi|c Pc) Pi)]
+              (recur (concat probs [Pc|i]) is dists+ dists-)))))))
 
-(probabilidades '+ (NB ejemplos) (butlast (second ejemplos)))
+
+(he-tardado 120 2.40)
