@@ -2,6 +2,7 @@
   (:use [amanas17.maia.symbols]
         [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
+        [amanas17.maia.p1-4]
         [amanas17.maia.p1-6]
         [amanas17.maia.p2-1]
         [amanas17.maia.p2-2]
@@ -145,7 +146,7 @@
                   m (media x n)
                   v (varianza x2 m n)
                   Pi|c (norm-pdf i m+ v+)
-                  Pc (/ n+ (+ n+ n-))
+                  Pc (/ n+ n)
                   Pi (norm-pdf i m v)
                   Pc|i (/ (* Pi|c Pc) Pi)]
               (recur (concat probs [Pc|i]) is dists+ dists-))
@@ -159,5 +160,56 @@
                   Pc|i (/ (* Pi|c Pc) Pi)]
               (recur (concat probs [Pc|i]) is dists+ dists-)))))))
 
-
 (he-tardado 120 2.40)
+
+
+;; Ejercicio 2.41
+
+(defn NBi
+  "Interprete de conceptos Naive Bayes"
+  [conceptoNB ejemplo-sin-clase]
+  (let [[c+ n+ & more+] (first (filter (fn [[clazz & more]] (= '+ clazz)) conceptoNB))
+        [c- n- & more-] (first (remove (fn [[clazz & more]] (= '- clazz)) conceptoNB))
+        P+ (/ n+ (+ n+ n-))
+        P+|i (probabilidades '+ conceptoNB ejemplo-sin-clase)
+        Pp+ (* P+ (reduce * P+|i))
+        P- (- 1 P+)
+        P-|i (probabilidades '- conceptoNB ejemplo-sin-clase)
+        Pp- (* P- (reduce * P-|i))]
+    (concat ejemplo-sin-clase [(if (>= Pp+ Pp-) '+ '-)])))
+
+(defn match-NB
+  "Devuelve true si la clase del ejemplo coincide con la deducida por el conceptoNB"
+  [conceptoNB ejemplo]
+  (= (last ejemplo) (last (NBi conceptoNB (butlast ejemplo)))))
+
+;; (map (partial match-NB (NB ejemplos)) (rest ejemplos))
+(he-tardado 60 2.41)
+
+;; Ejercicio 2.42
+
+(defn stratified-cross-validation
+  "Técnica de apendizaje consistente en:
+    - generar tantos folds en el conjunto entrenamiento como indica n-folds
+    - después iterar del modo siguiente:
+      - para cada fold entrenar en el conjunto de ejemplos que no están en el fold
+      - para cada fold evaluar con el conjunto de ejemplos del fold
+    y por último devolver la media de las precisiones"
+  [entrenador interprete entrenamiento n-folds]
+  (let [flds (stratify entrenamiento n-folds)
+        entre-eval-groups (for [n (range n-folds)]
+                            (let [entrenamiento (->> (drop (inc n) flds)
+                                                     (into (take n flds))
+                                                     (reduce mezclar))
+                                  evaluacion (nth flds n)]
+                              [entrenamiento evaluacion]))
+        precisiones (->> entre-eval-groups
+                         (map (partial apply holdout entrenador interprete)))]
+    (/ (apply + precisiones) (count precisiones))))
+
+(stratified-cross-validation NB NBi ejemplos 10)
+
+(clojure.pprint/pprint [(first (folds ejemplos 10))
+                        (second (folds ejemplos 10))
+                        (first (stratify ejemplos 10))
+                        (second (stratify ejemplos 10))])

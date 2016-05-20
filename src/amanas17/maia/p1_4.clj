@@ -46,11 +46,11 @@
    de cada clase se mantiene similar en cada fold
    Asume que la lista de entrada tiene cabecera con descripción de atributos
    Los folds que devuelve también tienen cabecera con descripción de atributos"
-  [n [head & body :as list]]
+  [[head & body :as list] n]
   (let [groups (group-by identity (atributo clase list))
         weights (into {} (for [[k v] groups] [k (count v)]))
         weighted-body (->> body (map (fn [x] [x (get weights (last x))])))
         weighted-folds (folds weighted-body n)]
-    (map (fn[wf] (map first wf)) weighted-folds)))
+    (map (fn [s] (concat [head] s)) (map (fn[wf] (map first wf)) weighted-folds))))
 
 (he-tardado 240 1.14)

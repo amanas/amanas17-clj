@@ -15,4 +15,4 @@
                (= (repeat 10  'header) (map first fs)))))
 
 ;; ejercicio 1.14 - tests
-(assert (= 3 (count (stratify 3 ejemplos))))
+(assert (= 3 (count (stratify ejemplos 3))))
