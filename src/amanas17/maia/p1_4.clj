@@ -51,6 +51,6 @@
         weights (into {} (for [[k v] groups] [k (count v)]))
         weighted-body (->> body (map (fn [x] [x (get weights (last x))])))
         weighted-folds (folds weighted-body n)]
-    (map (fn [s] (concat [head] s)) (map (fn[wf] (map first wf)) weighted-folds))))
+    (map (fn [s] (vec (concat [head] s))) (map (fn[wf] (map first wf)) weighted-folds))))
 
 (he-tardado 240 1.14)

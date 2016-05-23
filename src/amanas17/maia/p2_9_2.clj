@@ -8,7 +8,9 @@
         [amanas17.maia.p2-2]
         [amanas17.maia.p2-4]
         [amanas17.maia.p2-6]
-        [amanas17.maia.p2-7]))
+        [amanas17.maia.p2-7]
+        [amanas17.maia.p2-9-0]
+        [amanas17.maia.p2-9-1]))
 
 
 (defn nuevo-conceptoNB
@@ -209,7 +211,5 @@
 
 (stratified-cross-validation NB NBi ejemplos 10)
 
-(clojure.pprint/pprint [(first (folds ejemplos 10))
-                        (second (folds ejemplos 10))
-                        (first (stratify ejemplos 10))
-                        (second (stratify ejemplos 10))])
+(stratified-cross-validation IB IBi ejemplos 10)
+(stratified-cross-validation HGS HGSi ejemplos 10)
