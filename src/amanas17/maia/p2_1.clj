@@ -137,7 +137,7 @@
 (defn CLi
   "Intérprete basado en conjunciones lógicas"
   [concepto ejemplo-sin-clase]
-  (concat ejemplo-sin-clase [(if (match-CL concepto ejemplo-sin-clase) + -)]))
+  (concat ejemplo-sin-clase [(if (match-CL concepto ejemplo-sin-clase) '+ '-)]))
 
 (he-tardado 45 2.2)
 

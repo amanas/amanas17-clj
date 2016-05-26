@@ -7,6 +7,7 @@
         [amanas17.maia.p2-1]
         [amanas17.maia.p2-2]
         [amanas17.maia.p2-4]
+        [amanas17.maia.p2-5]
         [amanas17.maia.p2-6]
         [amanas17.maia.p2-7]
         [amanas17.maia.p2-9-0]
@@ -190,26 +191,10 @@
 
 ;; Ejercicio 2.42
 
-(defn stratified-cross-validation
-  "Técnica de apendizaje consistente en:
-    - generar tantos folds en el conjunto entrenamiento como indica n-folds
-    - después iterar del modo siguiente:
-      - para cada fold entrenar en el conjunto de ejemplos que no están en el fold
-      - para cada fold evaluar con el conjunto de ejemplos del fold
-    y por último devolver la media de las precisiones"
-  [entrenador interprete entrenamiento n-folds]
-  (let [flds (stratify entrenamiento n-folds)
-        entre-eval-groups (for [n (range n-folds)]
-                            (let [entrenamiento (->> (drop (inc n) flds)
-                                                     (into (take n flds))
-                                                     (reduce mezclar))
-                                  evaluacion (nth flds n)]
-                              [entrenamiento evaluacion]))
-        precisiones (->> entre-eval-groups
-                         (map (partial apply holdout entrenador interprete)))]
-    (/ (apply + precisiones) (count precisiones))))
+;; Tenemos que definir como hacer validación cruzada con stratificación
+(def stratified-cross-validation (partial cross-validation stratify))
 
-(stratified-cross-validation NB NBi ejemplos 10)
 
-(stratified-cross-validation IB IBi ejemplos 10)
-(stratified-cross-validation HGS HGSi ejemplos 10)
+(prn (stratified-cross-validation HGS CLi ejemplos 10))
+(prn (stratified-cross-validation HTC CLi ejemplos 10))
+;; (prn (stratified-cross-validation NB  NBi ejemplos 10))

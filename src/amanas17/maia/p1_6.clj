@@ -60,17 +60,19 @@
       - para cada fold entrenar en el conjunto de ejemplos que no están en el fold
       - para cada fold evaluar con el conjunto de ejemplos del fold
     y por último devolver la media de las precisiones"
-  [entrenador interprete entrenamiento n-folds]
-  (let [flds (folds entrenamiento n-folds)
-        entre-eval-groups (for [n (range n-folds)]
-                            (let [entrenamiento (->> (drop (inc n) flds)
-                                                     (into (take n flds))
-                                                     (reduce mezclar))
-                                  evaluacion (nth flds n)]
-                              [entrenamiento evaluacion]))
-        precisiones (->> entre-eval-groups
-                         (map (partial apply holdout entrenador interprete)))]
-    (/ (apply + precisiones) (count precisiones))))
+  ([entrenador interprete entrenamiento n-folds]
+   (cross-validation folds entrenador interprete entrenamiento n-folds))
+  ([split-fn entrenador interprete entrenamiento n-folds]
+   (let [flds (split-fn entrenamiento n-folds)
+         entre-eval-groups (for [n (range n-folds)]
+                             (let [entrenamiento (->> (drop (inc n) flds)
+                                                      (into (take n flds))
+                                                      (reduce mezclar))
+                                   evaluacion (nth flds n)]
+                               [entrenamiento evaluacion]))
+         precisiones (->> entre-eval-groups
+                          (map (partial apply holdout entrenador interprete)))]
+     (/ (apply + precisiones) (count precisiones)))))
 
 ;; Se comprueba el test indicado en el material de la práctica, pero teniendo en
 ;; cuenta que tenemos 25 ejemplos en lugar de 3
