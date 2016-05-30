@@ -1,6 +1,5 @@
 (ns amanas17.maia.p2-7
-  (:use [amanas17.maia.symbols]
-        [amanas17.maia.p1-1]
+  (:use [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
         [amanas17.maia.p2-2]))
 
@@ -10,7 +9,7 @@
    el atributo es numérico"
   [meta-atributo valor]
   (if (= 'numerico (second meta-atributo)) valor
-    (first (keep-indexed #(if (= valor %2) %1) (second meta-atributo)))))
+                                           (first (keep-indexed #(if (= valor %2) %1) (second meta-atributo)))))
 
 (he-tardado 30 2.23)
 
@@ -19,7 +18,7 @@
   "Devuelve un conceptoUU en el cual el vector está inicializado
    a valores al azar entre -<init> y +<init>"
   [metadatos init]
-  [metadatos (take (count metadatos) (repeatedly #(* init(- (* 2 (rand)) 1))))])
+  [metadatos (take (count metadatos) (repeatedly #(* init (- (* 2 (rand)) 1))))])
 
 (he-tardado 20 2.24)
 

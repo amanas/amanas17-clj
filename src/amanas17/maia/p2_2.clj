@@ -1,6 +1,5 @@
 (ns amanas17.maia.p2-2
-  (:use [amanas17.maia.symbols]
-        [amanas17.maia.p1-1]
+  (:use [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
         [amanas17.maia.p2-1]))
 
@@ -9,26 +8,26 @@
   "Indica si un test ambivalente es más general o de la misma categoría
   que otro"
   [test1 test2]
-  (or (= [**] test1)
-      (= [] test2)))
+  (or (= '(*) test1)
+      (= '() test2)))
 
 (defn extremo<=
   "Compara extremos de intervalos"
   [a b]
-  (cond (= -inf a)          true
-        (= +inf b)          true
+  (cond (= '-inf a) true
+        (= '+inf b) true
         (every? coll? [a b]) (comp<= (first a) (first b))
-        (coll? a)            (comp<= (first a) b)
-        (coll? b)            (comp< a (first b))
-        :else                (comp<= a b)))
+        (coll? a) (comp<= (first a) b)
+        (coll? b) (comp< a (first b))
+        :else (comp<= a b)))
 
 (defn test-contenido?
   "Determina si un test numérico está contenido en otro"
   [t1 t2]
   (let [[a b :as t1] (normalize-numerico t1)
         [c d :as t2] (normalize-numerico t2)]
-    (or (= [] t1)
-        (= [**] t2)
+    (or (= '() t1)
+        (= '(*) t2)
         (and (extremo<= c a)
              (extremo<= b d)))))
 
@@ -43,8 +42,8 @@
   "Indica si un test nominal es más general o de la misma categoría
   que otro"
   [t1 t2]
-  (cond (= [] t1) (= [] t2)
-        (= [**] t2) (= [**] t1)
+  (cond (= '() t1) (= '() t2)
+        (= '(*) t2) (= '(*) t1)
         :else true))
 
 ;; Ejercicio 2.6
@@ -73,7 +72,7 @@
    0 si c1 es de la misma categoría que c2 (en todos sus tests)
   -1 si c1 es más específico que c2 (en todos sus tests)"
   [c1 c2]
-  (cond (and (concepto-CL>= c1 c2) (not (concepto-CL>= c2 c1)))  1
+  (cond (and (concepto-CL>= c1 c2) (not (concepto-CL>= c2 c1))) 1
         (and (not (concepto-CL>= c1 c2)) (concepto-CL>= c2 c1)) -1
         :else 0))
 

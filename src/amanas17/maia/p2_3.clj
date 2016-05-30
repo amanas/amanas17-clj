@@ -1,6 +1,5 @@
 (ns amanas17.maia.p2-3
-  (:use [amanas17.maia.symbols]
-        [amanas17.maia.p1-1]
+  (:use [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
         [amanas17.maia.p2-1]
         [amanas17.maia.p2-2]))
@@ -13,9 +12,10 @@
   [concepto-CL indice-atributo metadatos]
   (let [test (nth concepto-CL indice-atributo)
         all-values (second (nth metadatos indice-atributo))]
-    (if (= test [**])
-      (map #(assoc concepto-CL indice-atributo [%]) all-values)
-      [(assoc concepto-CL indice-atributo [])])))
+    (if (= test '(*))
+      (map #(assoc (vec concepto-CL) indice-atributo [%]) all-values)
+      [(assoc (vec concepto-CL) indice-atributo [])])))
+
 
 (he-tardado 60 2.9)
 
@@ -28,8 +28,8 @@
   (let [test (nth concepto-CL indice-atributo)
         all-values (second (nth metadatos indice-atributo))]
     (if (= test [])
-      (map #(assoc concepto-CL indice-atributo [%]) all-values)
-      [(assoc concepto-CL indice-atributo [**])])))
+      (map #(assoc (vec concepto-CL) indice-atributo [%]) all-values)
+      [(assoc (vec concepto-CL) indice-atributo '(*))])))
 
 (he-tardado 60 2.10)
 
@@ -40,17 +40,17 @@
    Si el ejemplo es negativo o el concepto ya incluye el ejemplo, devuelve el
    concepto tal cual lo recibe."
   [concepto-CL indice-atributo ejemplo]
-  (if (= - (last ejemplo)) concepto-CL
-      (let [test (nth concepto-CL indice-atributo)
-            atributo (nth ejemplo indice-atributo)]
-        (if (match-numerico? test atributo) concepto-CL
-            (let [[a b :as t] (normalize-numerico test)
-                  gener (cond (= [] t) [atributo]
-                              (= [**] t) t
-                              (extremo<= atributo a) (normalize-numerico [[atributo] b])
-                              (extremo<= b atributo) (normalize-numerico [a [atributo]])
-                              :else test)]
-              (assoc concepto-CL indice-atributo gener))))))
+  (if (= '- (last ejemplo)) concepto-CL
+                            (let [test (nth concepto-CL indice-atributo)
+                                  atributo (nth ejemplo indice-atributo)]
+                              (if (match-numerico? test atributo) concepto-CL
+                                                                  (let [[a b :as t] (normalize-numerico test)
+                                                                        gener (cond (= '() t) [atributo]
+                                                                                    (= '(*) t) t
+                                                                                    (extremo<= atributo a) (normalize-numerico [[atributo] b])
+                                                                                    (extremo<= b atributo) (normalize-numerico [a [atributo]])
+                                                                                    :else test)]
+                                                                    (assoc (vec concepto-CL) indice-atributo gener))))))
 
 ;; Ejercicio 2.12
 (defn especializaciones-atributo-numerico
@@ -59,16 +59,16 @@
    Si el ejemplo es positivo o el concepto ya excluye el ejemplo, devuelve una lista
    cuyo único elemento es el concepto."
   [concepto-CL indice-atributo ejemplo]
-  (if (= + (last ejemplo)) [concepto-CL]
-      (let [test (nth concepto-CL indice-atributo)
-            atributo (nth ejemplo indice-atributo)]
-        (if-not (match-numerico? test atributo) [concepto-CL]
-                (let [[a b :as t] (normalize-numerico test)
-                      specs (cond (= [] t) [t]
-                                  (= [**] t) [[-inf atributo] [atributo +inf]]
-                                  :else [(normalize-numerico [a atributo])
-                                         (normalize-numerico [atributo b])])]
-                  (map (partial assoc concepto-CL indice-atributo) specs))))))
+  (if (= '+ (last ejemplo)) [concepto-CL]
+                            (let [test (nth concepto-CL indice-atributo)
+                                  atributo (nth ejemplo indice-atributo)]
+                              (if-not (match-numerico? test atributo) [concepto-CL]
+                                                                      (let [[a b :as t] (normalize-numerico test)
+                                                                            specs (cond (= '() t) [t]
+                                                                                        (= '(*) t) [['-inf atributo] [atributo '+inf]]
+                                                                                        :else [(normalize-numerico [a atributo])
+                                                                                               (normalize-numerico [atributo b])])]
+                                                                        (map (partial assoc (vec concepto-CL) indice-atributo) specs))))))
 
 ;; Ejercicio 2.13
 (defn generalizaciones-CL
@@ -76,17 +76,17 @@
    atributos) del concepto para el ejemplo.
    Si el ejemplo es negativo, devuelve el concepto tal cual en una lista"
   ([concepto-CL metadatos ejemplo indice]
-   (if (= numerico (second (nth metadatos indice)))
+   (if (= 'numerico (second (nth metadatos indice)))
      [(generalizacion-atributo-numerico concepto-CL indice ejemplo)]
      (generalizaciones-atributo-nominal concepto-CL indice metadatos)))
   ([concepto-CL metadatos ejemplo]
-   (if (or (= - (last ejemplo))
+   (if (or (= '- (last ejemplo))
            (match-CL concepto-CL (butlast ejemplo)))
      [concepto-CL]
      (->> (range (dec (count metadatos)))
           (mapcat (partial generalizaciones-CL concepto-CL metadatos ejemplo))
           (remove (partial = concepto-CL))
-          distinct)) ))
+          distinct))))
 
 ;; Ejercicio 2.14
 (defn especializaciones-CL
@@ -95,11 +95,11 @@
    Si el ejemplo es positivo o ya es rechazado por el concepto,
    devuelve el concepto tal cual en una lista"
   ([concepto-CL metadatos ejemplo indice]
-   (if (= numerico (second (nth metadatos indice)))
+   (if (= 'numerico (second (nth metadatos indice)))
      (especializaciones-atributo-numerico concepto-CL indice ejemplo)
      (especializaciones-atributo-nominal concepto-CL indice metadatos)))
   ([concepto-CL metadatos ejemplo]
-   (if (or (= + (last ejemplo))
+   (if (or (= '+ (last ejemplo))
            (not (match-CL concepto-CL (butlast ejemplo))))
      [concepto-CL]
      (->> (range (dec (count metadatos)))

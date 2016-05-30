@@ -1,6 +1,5 @@
 (ns amanas17.maia.p2-5
-  (:use [amanas17.maia.symbols]
-        [amanas17.maia.p1-1]
+  (:use [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
         [amanas17.maia.p2-1]
         [amanas17.maia.p2-2]
@@ -34,7 +33,7 @@
    (HGS0 PSET NSET CLOSED-SET HSET 10))
   ([PSET NSET CLOSED-SET HSET beam-size]
    (let [CLOSED-SET (atom (set CLOSED-SET))
-         OPEN-SET   (atom #{})]
+         OPEN-SET (atom #{})]
      (prn "First  [CLOSED-SET,HSET]=" [(count @CLOSED-SET) (count HSET)])
      (doall (pmap (fn [H]
                     (let [NEW-SET (atom #{})]
@@ -51,10 +50,10 @@
                         (doall (pmap (fn [S]
                                        (swap! OPEN-SET conj S)
                                        (doall (pmap (fn [C]
-                                                      (when  (= -1 (cmp-concepto-CL S C))
-                                                          ;;(concepto-CL>= C S)
+                                                      (when (= -1 (cmp-concepto-CL S C))
+                                                        ;;(concepto-CL>= C S)
                                                         (if (> (score-CL C PSET NSET) (score-CL S PSET NSET))
-                                                          (swap! OPEN-SET   without S)
+                                                          (swap! OPEN-SET without S)
                                                           (swap! CLOSED-SET without C))))
                                                     @CLOSED-SET)))
                                      @NEW-SET)))))
@@ -68,7 +67,7 @@
        (let [BEST-SET (->> @OPEN-SET (into @CLOSED-SET) (sort-by-score-desc PSET NSET)
                            (take beam-size) set)
              CLOSED-SET (filter BEST-SET @CLOSED-SET)
-             OPEN-SET   (filter BEST-SET @OPEN-SET)]
+             OPEN-SET (filter BEST-SET @OPEN-SET)]
          (HGS0 PSET NSET CLOSED-SET OPEN-SET beam-size))))))
 
 (defn HGS

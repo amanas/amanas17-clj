@@ -1,12 +1,11 @@
 (ns amanas17.maia.p1-9
-  (:use [amanas17.maia.symbols]
-        [amanas17.maia.p1-1]
+  (:use        [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
         [amanas17.maia.p1-4]
         [amanas17.maia.p1-5]))
 
 ;; Ejercicio 1.20
-(def concepto-inicial [['+ 0] ['- 0]])
+(def concepto-inicial '((+ 0) (- 0)))
 
 (defn IIA1 [descripcion-atributos concepto ejemplo]
   (let [cm (apply hash-map (flatten concepto))]

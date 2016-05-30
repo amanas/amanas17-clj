@@ -1,6 +1,5 @@
 (ns amanas17.maia.p2-4
-  (:use [amanas17.maia.symbols]
-        [amanas17.maia.p1-1]
+  (:use [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
         [amanas17.maia.p2-1]
         [amanas17.maia.p2-2]
@@ -41,7 +40,7 @@
   (let [meta (first NSET)
         H-match (count-matchings H NSET)]
     (->> (pmap #(for [S (especializaciones-CL H meta %)]
-                  (when (<= (count-matchings S NSET) H-match) S))
+                 (when (<= (count-matchings S NSET) H-match) S))
                (rest NSET))
          (apply concat)
          (remove nil?)
@@ -75,23 +74,23 @@
                  DUMMY))
     (prn "Second [CSET,HSET]=" [(count @CSET) (count @HSET)])
     (if (empty? @HSET) (vec @CSET)
-        (let [DUMMY (vec @HSET)
-              NEWSET (atom #{})]
-          (doall (pmap (fn [H]
-                         (doall (pmap (fn [S]
-                                        (when (none-more-general? @CSET S)
-                                          (swap! NEWSET conj S)))
-                                      (specs-matching<=H H NSET))))
-                       DUMMY))
-          (EGS0 PSET NSET @CSET @NEWSET)))))
+                       (let [DUMMY (vec @HSET)
+                             NEWSET (atom #{})]
+                         (doall (pmap (fn [H]
+                                        (doall (pmap (fn [S]
+                                                       (when (none-more-general? @CSET S)
+                                                         (swap! NEWSET conj S)))
+                                                     (specs-matching<=H H NSET))))
+                                      DUMMY))
+                         (EGS0 PSET NSET @CSET @NEWSET)))))
 
 (defn EGS
   "Devuelve un concepto al azar del resultado de aplicar EGS0 a los ejemplos
    tomando el concepto más específico como CSET y el más general como HSET"
   [ejemplos]
   (let [meta (first ejemplos)
-        ej+  (->> ejemplos rest (filter (comp (partial = '+) last)))
-        ej-  (->> ejemplos rest (filter (comp (partial = '-) last)))
+        ej+ (->> ejemplos rest (filter (comp (partial = '+) last)))
+        ej- (->> ejemplos rest (filter (comp (partial = '-) last)))
         egs0 (EGS0 (cons meta ej+) (cons meta ej-) [] [(concepto-CL-mas-general meta)])]
     ;; (clojure.pprint/pprint egs0)
     (prn "Total" (count egs0))

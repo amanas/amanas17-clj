@@ -1,6 +1,5 @@
 (ns amanas17.maia.p1-6
-  (:use [amanas17.maia.symbols]
-        [amanas17.maia.p1-1]
+  (:use [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
         [amanas17.maia.p1-4]
         [amanas17.maia.p1-5]))
@@ -46,7 +45,8 @@
     - y evaluar con el conjunto evaluacion"
   [entrenador interprete entrenamiento evaluacion]
   (let [concepto (entrenador entrenamiento)
-        extension (concat [(first evaluacion)] (map (partial interprete concepto) (rest (map butlast evaluacion))))]
+        extension (concat [(first evaluacion)] (map (partial interprete concepto)
+                                                    (rest (map butlast evaluacion))))]
     (calcula-precision evaluacion extension)))
 
 (he-tardado 90 1.23)
@@ -66,7 +66,7 @@
    (let [flds (split-fn entrenamiento n-folds)
          entre-eval-groups (for [n (range n-folds)]
                              (let [entrenamiento (->> (drop (inc n) flds)
-                                                      (into (take n flds))
+                                                      (concat (take n flds))
                                                       (reduce mezclar))
                                    evaluacion (nth flds n)]
                                [entrenamiento evaluacion]))

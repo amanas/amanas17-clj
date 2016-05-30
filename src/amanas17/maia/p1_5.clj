@@ -1,6 +1,5 @@
 (ns amanas17.maia.p1-5
-  (:use [amanas17.maia.symbols]
-        [amanas17.maia.p1-1]
+  (:use [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
         [amanas17.maia.p1-4]))
 
@@ -16,7 +15,7 @@
         ;;el indice de clase en la lista atributos.
         indice-clase (->> atributos
                           (map first)
-                          (keep-indexed (fn [i v] (when (= clase v) i)))
+                          (keep-indexed (fn [i v] (when (= 'clase v) i)))
                           first)
         clases-posibles (second (nth atributos indice-clase))
         ;;variable que mantiene la cuenta de las apariciones de cada clase.
@@ -31,12 +30,12 @@
         ;;para actualizar la contabilizacion de clases
         actualizar-contabilizacion (fn [ejemplo]
                                      (let [clase (nth ejemplo indice-clase)]
-                                       (swap! clases-contabilizadas  assoc clase
+                                       (swap! clases-contabilizadas assoc clase
                                               (inc (get @clases-contabilizadas clase)))))]
     ;;fin de las asignaciones let
     ;;Ahora, por cada ejemplo de entrenamiento,
     ;; se actualiza la contabilizacion de clases.
-    (doall (map  actualizar-contabilizacion casos))
+    (doall (map actualizar-contabilizacion casos))
     ;;Finalmente se escoge la clase que mas veces ha aparecido:
     ;;primero, se obtiene el numero maximo;
     (reset! concepto (apply max (vals @clases-contabilizadas)))
@@ -64,7 +63,7 @@
 
 ;; La variable ejemplos contiene los ejemplos originales; la variable extensión
 ;; contiene los mismos ejemplos pero todos ellos teniendo como valor de la clase
-                                        ;  el mas común entre todos los ejemplos.
+;  el mas común entre todos los ejemplos.
 ;; Claro que existen herrores: todos aquellos ejemplos que tenían una clase
 ;; que no era la más común entre la población total han sido modificados.
 ;; Ahora todos tienen la misma clase
@@ -79,7 +78,7 @@
         aciertos (->> [(rest ejemplos) (rest extension)]
                       (apply interleave)
                       (partition 2)
-                      (filter (fn [[ej ex]](= (last ej) (last ex))))
+                      (filter (fn [[ej ex]] (= (last ej) (last ex))))
                       count)]
     (/ aciertos todos)))
 
@@ -90,7 +89,7 @@
   (let [todos (count (rest ejemplos))
         fallos (->> [(rest ejemplos) (rest extension)] (apply interleave)
                     (partition 2)
-                    (filter (fn [[ej ex]](not= (last ej) (last ex))))
+                    (filter (fn [[ej ex]] (not= (last ej) (last ex))))
                     count)]
     (/ fallos todos)))
 
@@ -131,7 +130,7 @@
         ;;el indice de clase en la lista atributos.
         indice-clase (->> atributos
                           (map first)
-                          (keep-indexed (fn [i v] (when (= clase v) i)))
+                          (keep-indexed (fn [i v] (when (= 'clase v) i)))
                           first)
         clases-posibles (second (nth atributos indice-clase))
         ;;variable que mantiene la cuenta de las apariciones de cada clase.
@@ -146,12 +145,12 @@
         ;;para actualizar la contabilizacion de clases
         actualizar-contabilizacion (fn [ejemplo]
                                      (let [clase (nth ejemplo indice-clase)]
-                                       (swap! clases-contabilizadas  assoc clase
+                                       (swap! clases-contabilizadas assoc clase
                                               (inc (get @clases-contabilizadas clase)))))]
     ;;fin de las asignaciones let
     ;;Ahora, por cada ejemplo de entrenamiento,
     ;; se actualiza la contabilizacion de clases.
-    (doall (map  actualizar-contabilizacion casos))
+    (doall (map actualizar-contabilizacion casos))
     (vec @clases-contabilizadas)))
 
 (defn A1i
@@ -161,7 +160,7 @@
 
 (defn clasifica-con-A1-A1i [ejemplos2]
   (let [ejemplos-sin-clase2 (map butlast ejemplos2)
-        extension2-A1-A1i (map (partial  A1i (A1 ejemplos)) ejemplos-sin-clase2)
+        extension2-A1-A1i (map (partial A1i (A1 ejemplos)) ejemplos-sin-clase2)
         precision2-A1-A1i (calcula-precision ejemplos2 extension2-A1-A1i)
         error2-A1-A1i (calcula-error ejemplos2 extension2-A1-A1i)]
     [precision2-A1-A1i error2-A1-A1i]))

@@ -1,6 +1,5 @@
 (ns amanas17.maia.p2-9-0
-  (:use [amanas17.maia.symbols]
-        [amanas17.maia.p1-1]
+  (:use [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
         [amanas17.maia.p1-6]
         [amanas17.maia.p2-1]
@@ -38,15 +37,15 @@
    0 en otro caso"
   [[u1 & CL1 :as TC1] [u2 & CL2 :as TC2]]
   (if (= u1 u2) (cmp-concepto-CL CL1 CL2)
-      (let [cmp-sum (->> (interleave CL1 CL2)
-                         (map vector)
-                         (partition 2)
-                         (map (partial apply cmp-concepto-CL))
-                         (reduce +)
-                         (+ u2 (* -1 u1)))]
-        (cond (neg?  cmp-sum) -1
-              (zero? cmp-sum)  0
-              :else            1))))
+                (let [cmp-sum (->> (interleave CL1 CL2)
+                                   (map vector)
+                                   (partition 2)
+                                   (map (partial apply cmp-concepto-CL))
+                                   (reduce +)
+                                   (+ u2 (* -1 u1)))]
+                  (cond (neg? cmp-sum) -1
+                        (zero? cmp-sum) 0
+                        :else 1))))
 
 ;; Ejercicio 2.28
 (defn HTC0
@@ -63,29 +62,29 @@
    (HTC0 PSET NSET CLOSED-SET HSET 10 100))
   ([PSET NSET CLOSED-SET HSET beam-size sample-size]
    (let [CLOSED-SET (atom (set CLOSED-SET))
-         OPEN-SET   (atom #{})]
+         OPEN-SET (atom #{})]
      (prn "1 - HTC0 [CLOSED-SET,HSET]" [(count @CLOSED-SET) (count HSET)])
      (let [meta (first PSET)
            PSET (cons meta (take sample-size (shuffle (rest PSET))))
            NSET (cons meta (take sample-size (shuffle (rest NSET))))]
        (doall (pmap (fn [H] (let [NEW-SET (atom #{})]
-                             (doall (pmap (fn [S] (when (> (score-TC S PSET NSET) (score-TC H PSET NSET))
-                                                   (swap! NEW-SET conj S)))
-                                          (->> (rest NSET)
-                                               (pmap (partial especializaciones-TC H meta))
-                                               (apply concat)
-                                               shuffle (take sample-size)
-                                               (remove (partial = H)) distinct)))
-                             (if (empty? @NEW-SET)
-                               (swap! CLOSED-SET conj H)
-                               (doall (pmap (fn [S] (swap! OPEN-SET conj S)
-                                              (doall (pmap (fn [C] (when  (< (cmp-concepto-TC S C) 0)
-                                                                    (if (> (score-TC C PSET NSET)
-                                                                           (score-TC S PSET NSET))
-                                                                      (swap! OPEN-SET   without S)
-                                                                      (swap! CLOSED-SET without C))))
-                                                           @CLOSED-SET)))
-                                            @NEW-SET)))))
+                              (doall (pmap (fn [S] (when (> (score-TC S PSET NSET) (score-TC H PSET NSET))
+                                                     (swap! NEW-SET conj S)))
+                                           (->> (rest NSET)
+                                                (pmap (partial especializaciones-TC H meta))
+                                                (apply concat)
+                                                shuffle (take sample-size)
+                                                (remove (partial = H)) distinct)))
+                              (if (empty? @NEW-SET)
+                                (swap! CLOSED-SET conj H)
+                                (doall (pmap (fn [S] (swap! OPEN-SET conj S)
+                                               (doall (pmap (fn [C] (when (< (cmp-concepto-TC S C) 0)
+                                                                      (if (> (score-TC C PSET NSET)
+                                                                             (score-TC S PSET NSET))
+                                                                        (swap! OPEN-SET without S)
+                                                                        (swap! CLOSED-SET without C))))
+                                                            @CLOSED-SET)))
+                                             @NEW-SET)))))
                     HSET)))
      (prn "2 - HTC0 [CLOSED-SET,OPEN-SET]" [(count @CLOSED-SET) (count @OPEN-SET)])
      (if (empty? @OPEN-SET)
@@ -94,7 +93,7 @@
        (let [BEST-SET (->> @OPEN-SET (into @CLOSED-SET) (sort-by-scoreTC-desc PSET NSET)
                            (take beam-size) set)
              CLOSED-SET (filter BEST-SET @CLOSED-SET)
-             OPEN-SET   (filter BEST-SET @OPEN-SET)]
+             OPEN-SET (filter BEST-SET @OPEN-SET)]
          (HTC0 PSET NSET CLOSED-SET OPEN-SET beam-size sample-size))))))
 
 
@@ -105,10 +104,10 @@
   ([ejemplos beam-size] (HTC ejemplos beam-size 10000))
   ([ejemplos beam-size sample-size]
    (let [meta (first ejemplos)
-         ej+ (cons meta  (->> ejemplos rest (filter (comp (partial = '+) last))))
+         ej+ (cons meta (->> ejemplos rest (filter (comp (partial = '+) last))))
          ej- (cons meta (->> ejemplos rest (filter (comp (partial = '-) last))))
          concepto-TC-mas-general (cons 0 (concepto-CL-mas-general meta))
-         htc0 (HTC0 ej+ ej-  [] [concepto-TC-mas-general] beam-size sample-size)]
+         htc0 (HTC0 ej+ ej- [] [concepto-TC-mas-general] beam-size sample-size)]
      htc0)))
 
 (comment (time (prn (HTC ejemplos))))
@@ -175,19 +174,19 @@
    (loop [[ATTS [& values] :as H] concepto-UU
           [I & more] (rest ejemplos)]
      (if (empty? more) H
-         (let [C (last I)
-               P (last (LUUi H (butlast I)))
-               S (cond (and  (= '- P) (= '+ C))  1
-                       (and  (= '+ P) (= '- C)) -1
-                       :else nil)
-               new-H (if (= C P) H
-                         (let [new-values (map (fn [i] (+ (nth values i)
-                                                         (* S revision-rate
-                                                            (traducir (nth ATTS i) (nth I i)))))
-                                               (range (dec (count values))))
-                               new-umbral (+ (last values) (* S revision-rate))]
-                           [ATTS (conj new-values new-umbral)]))]
-           (recur new-H more))))))
+                       (let [C (last I)
+                             P (last (LUUi H (butlast I)))
+                             S (cond (and (= '- P) (= '+ C)) 1
+                                     (and (= '+ P) (= '- C)) -1
+                                     :else nil)
+                             new-H (if (= C P) H
+                                               (let [new-values (map (fn [i] (+ (nth values i)
+                                                                                (* S revision-rate
+                                                                                   (traducir (nth ATTS i) (nth I i)))))
+                                                                     (range (dec (count values))))
+                                                     new-umbral (+ (last values) (* S revision-rate))]
+                                                 [ATTS (conj new-values new-umbral)]))]
+                         (recur new-H more))))))
 
 (nuevo-conceptoUU (first ejemplos) 1)
 
@@ -219,9 +218,9 @@
    (loop [H (nuevo-conceptoUU meta 1)
           COUNT max-iterations]
      (if (= 0 COUNT) H
-         (let [NO-ERRORS (every? true? (map (fn [i] (= (last i) (last (LUUi H (butlast i))))) instances))]
-           (if NO-ERRORS H
-               (recur (PRM H ejemplos revision-rate) (dec COUNT))))))))
+                     (let [NO-ERRORS (every? true? (map (fn [i] (= (last i) (last (LUUi H (butlast i))))) instances))]
+                       (if NO-ERRORS H
+                                     (recur (PRM H ejemplos revision-rate) (dec COUNT))))))))
 
 
 ;; El resultado con mis ejemplos de entrenamiento es el siguiente
@@ -251,30 +250,30 @@
    y observaciones. LMS asume que el valor del umbral es siempre 1.
    Devuelve una LUU"
   ([ejemplos] (LMS ejemplos 1 1 1000 1))
-  ([[meta & instances :as ejemplos] gain  momentum max-iterations min-error]
+  ([[meta & instances :as ejemplos] gain momentum max-iterations min-error]
    (loop [deltas (repeat (count meta) 0)
           [meta weights :as H] (nuevo-conceptoUU meta 0.5)
           COUNT max-iterations]
      (if (= 0 COUNT) H
-         (let [TOTAL-ERROR (atom 0)]
-           (doall (for [I instances]
-                    (let [Oi (traducir (last meta) (last I))
-                          Pi (traducir (last meta) (last (LUUi H (butlast I))))]
-                      (swap! TOTAL-ERROR + (Math/pow (- Oi Pi) 2)))))
-           (if (< @TOTAL-ERROR min-error) H
-               (let [new-DW-fn (fn [i] (let [W (nth weights i)
-                                            A (nth meta i)
-                                            D (nth deltas i)
-                                            GRADIENT (atom 0)]
-                                        (doall (for [I instances]
-                                                 (let [Oi (traducir (last meta) (last I))
-                                                       Pi (traducir (last meta) (last (LUUi H (butlast I))))
-                                                       d (* Pi (- 1 Pi) (- Oi Pi))
-                                                       v (traducir A (nth I i))]
-                                                   (swap! GRADIENT + (* gain d v)))))
-                                        [(+ @GRADIENT (* momentum D)) (+ W @GRADIENT (* momentum D))]))
-                     new-DWs (map new-DW-fn (range (count weights)))]
-                 (recur (map first new-DWs) [meta (map second new-DWs)] (dec COUNT)))))))))
+                     (let [TOTAL-ERROR (atom 0)]
+                       (doall (for [I instances]
+                                (let [Oi (traducir (last meta) (last I))
+                                      Pi (traducir (last meta) (last (LUUi H (butlast I))))]
+                                  (swap! TOTAL-ERROR + (Math/pow (- Oi Pi) 2)))))
+                       (if (< @TOTAL-ERROR min-error) H
+                                                      (let [new-DW-fn (fn [i] (let [W (nth weights i)
+                                                                                    A (nth meta i)
+                                                                                    D (nth deltas i)
+                                                                                    GRADIENT (atom 0)]
+                                                                                (doall (for [I instances]
+                                                                                         (let [Oi (traducir (last meta) (last I))
+                                                                                               Pi (traducir (last meta) (last (LUUi H (butlast I))))
+                                                                                               d (* Pi (- 1 Pi) (- Oi Pi))
+                                                                                               v (traducir A (nth I i))]
+                                                                                           (swap! GRADIENT + (* gain d v)))))
+                                                                                [(+ @GRADIENT (* momentum D)) (+ W @GRADIENT (* momentum D))]))
+                                                            new-DWs (map new-DW-fn (range (count weights)))]
+                                                        (recur (map first new-DWs) [meta (map second new-DWs)] (dec COUNT)))))))))
 
 ;; El resultado con mis ejemplos de entrenamiento es el siguiente
 (comment (LMS ejemplos))

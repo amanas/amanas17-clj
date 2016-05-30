@@ -1,10 +1,10 @@
 (ns amanas17.maia.p2-7-test
-  (:use [amanas17.maia.symbols]
+  (:use
         [amanas17.maia.p1-3]
         [amanas17.maia.p2-7 :refer :all]))
 
 (assert (= 2
-           (traducir '(perspectiva (soleado nublado lluvioso)) lluvioso)))
+           (traducir '(perspectiva (soleado nublado lluvioso)) 'lluvioso)))
 
 (assert (true? (apply = (map count (nuevo-conceptoUU (first ejemplos) 1)))))
 

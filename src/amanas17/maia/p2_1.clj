@@ -1,6 +1,5 @@
 (ns amanas17.maia.p2-1
-  (:use [amanas17.maia.symbols]
-        [amanas17.maia.p1-1]
+  (:use [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]))
 
 ;; Por simplicidad defino los valores -infinito y +infinito como keyworkds
@@ -10,24 +9,24 @@
   "Determina si un test puede ser aplicado indistintamente
   a un atributo numérico o nominal"
   [test]
-  (or (= [] test)
-      (= [**] test)))
-
-(defn test-numerico?
-  "Determina si un test es aplicable a un atributo numérico"
-  [[v1 v2 :as test]]
-  (or (test-ambivalente? test)
-      (and ((fn [v] (or (= -inf v) (= +inf v) (number? v)))
-            (if (coll? v1) (first v1) v1))
-           ((fn [v] (or (= -inf v) (= +inf v) (number? v) (nil? v)))
-            (if (coll? v2) (first v2) v2)))))
+  (or (= '() test)
+      (= '(*) test)))
 
 (defn test-nominal?
   "Determina si un test es aplicable a un atributo nominal"
+  [[v & more :as test]]
+  (or (test-ambivalente? test)
+      (and (symbol? v)
+           (nil? more)
+           (not= '-inf v)
+           (not= '+inf v))))
+
+(defn test-numerico?
+  "Determina si un test es aplicable a un atributo numérico"
   [test]
   (or (test-ambivalente? test)
-      (and (not (some #{-inf +inf} test))
-           (symbol? (first test)))))
+      (not (test-nominal? test))))
+
 
 (defn match-nature?
   "Determina si un test (o array de ellos) y un atributo (o array de ellos)
@@ -35,17 +34,16 @@
   ([[tests atributos]]
    (->> (interleave tests atributos)
         (partition 2)
-        (map (partial apply match-nature?))
-        (every? true?)))
+        (every? (partial apply match-nature?))))
   ([test atributo]
    (or (test-ambivalente? test)
-       (and (test-numerico? test) (number? atributo))
-       (and (test-nominal?  test) (symbol? atributo)))))
+       (and (test-nominal? test) (symbol? atributo))
+       (and (test-numerico? test) (number? atributo)))))
 
 (defn match-ambivalente?
   "Determina si un atributo satisface un test ambivalente"
   [test atributo]
-  (= [**] test))
+  (= '(*) test))
 
 (defn match-nominal?
   "Determina si un atributo nominal satisface un test nominal"
@@ -59,14 +57,13 @@
   Sobre esta función recae en última instancia el orden parcial de los tests
   numéricos"
   [a b]
-  (cond (= -inf a)            true
-        (= +inf b)            true
+  (cond (= '-inf a) true
+        (= '+inf b) true
         (every? number? [a b]) (<= a b)
-        :else                  false))
-(defn comp=  [a b] (and (comp<= a b) (comp<= b a)))
-(defn comp<  [a b] (and (comp<= a b) (not (comp= a b))))
-(defn comp>  [a b] (not (comp<= a b)))
-(defn comp>= [a b] (not (comp<  a b)))
+        :else false))
+
+(defn comp< [a b]
+  (and (comp<= a b) (not= a b)))
 
 (defn normalize-numerico
   "Los tests numéricos admiten demasiada variedad en su forma de
@@ -74,28 +71,27 @@
   Ésta función los encapsula en una estructura común que puede adoptar
   cualquiera de estas formas:
   - []
-  - [**]
+  - [*]
   - [a b]
   - [[a] b]
   - [a [b]]
   - [[a] [b]]
   siendo a y b números o -inf, +inf"
   [[a b :as t]]
-  (cond (= [] t)             []
-        (= [**] t)            [**]
-        (= [-inf] a)        (normalize-numerico [-inf b])
-        (= [+inf] b)        (normalize-numerico [a +inf])
-        (= [-inf +inf] t)  [**]
-        (nil? b)             (normalize-numerico [a a])
-        (every? coll? [a b]) (if (comp<= (first a) (first b)) t [])
-        (every? (comp not coll?)
-                [a b])       (cond  (comp= a b) [[a] [b]]
-                                    (comp< a b) t
-                                    :else [])
-                (coll? a)            (if (comp< (first a) b) t [])
-                (coll? b)            (if (comp< a (first b)) t [])
-                (comp<= a b)         t
-                :else                []))
+  (cond (= '() t) t
+        (= '(*) t) t
+        (= '(-inf) a) (normalize-numerico ['-inf b])
+        (= '(+inf) b) (normalize-numerico [a '+inf])
+        (= '(-inf +inf) t) '(*)
+        (nil? b) (normalize-numerico [a a])
+        (every? coll? t) (if (comp<= (first a) (first b)) t '())
+        (every? (comp not coll?) t) (cond (= a b) [[a] [b]]
+                                          (comp< a b) t
+                                          :else '())
+        (coll? a) (if (comp< (first a) b) t '())
+        (coll? b) (if (comp< a (first b)) t '())
+        (comp<= a b) t
+        :else '()))
 
 (defn match-numerico?
   "Determina si un atributo numérico satisface un test numérico"
@@ -112,19 +108,18 @@
   ([[tests atributos]]
    (->> (interleave tests atributos)
         (partition 2)
-        (map (partial apply match?))
-        (every? true?)))
+        (every? (partial apply match?))))
   ([test atributo]
    (cond (test-ambivalente? test) (match-ambivalente? test atributo)
          (test-numerico? test) (match-numerico? test atributo)
-         (test-nominal? test)  (match-nominal? test atributo)
+         (test-nominal? test) (match-nominal? test atributo)
          :else false)))
 
 ; (match-CL [[soleado] [**] [10 [40]] [si]] [soleado 30 40 si])
 ;; Ejercicio 2.1
 (defn match-CL
   "Determina si un conjunto de atributos satisfacen un conjunto de tests"
-  [[& tests :as  concepto]
+  [[& tests :as concepto]
    [& atributos :as ejemplo-sin-clase]]
   (and (= (count tests) (count atributos))
        (match-nature? [tests atributos])
@@ -148,16 +143,16 @@
 ;; incluyentes y excluyentes.
 
 ;; Como mis ejemplos tienen 7 atributos más la clase, debería ser
-(def concepto-mas-general-posible [[**] [**] [**] [**] [**] [**] [**]])
-(def concepto-mas-especifico-posible [[] [] [] [] [] [] []])
+(def concepto-mas-general-posible '((*) (*) (*) (*) (*) (*) (*)))
+(def concepto-mas-especifico-posible '(() () () () () () ()))
 ;; Un concepto que para mí podría suponer un buen día para salir al campo es
-(def concepto-mas-cercano-para-mi [[soleado]
-                                   [20 30]
-                                   [60 80]
-                                   [no]
-                                   [contento]
-                                   [**]
-                                   [solvente]])
+(def concepto-mas-cercano-para-mi '((soleado)
+                                     (20 30)
+                                     (50 55)
+                                     (no)
+                                     (contento)
+                                     (*)
+                                     (solvente)))
 
 (he-tardado 20 2.3)
 
@@ -167,7 +162,7 @@
   atributos de un conjunto de datos.
   Metadatos se entiende que es la cabecera de descripción de atributos"
   [metadatos]
-  (vec (replicate (dec (count metadatos)) [**])))
+  (vec (replicate (dec (count metadatos)) '(*))))
 
 (he-tardado 20 2.4)
 
@@ -177,6 +172,6 @@
   atributos de un conjunto de datos.
   Metadatos se entiende que es la cabecera de descripción de atributos"
   [metadatos]
-  (repeat (dec (count metadatos)) []))
+  (repeat (dec (count metadatos)) '()))
 
 (he-tardado 3 2.5)

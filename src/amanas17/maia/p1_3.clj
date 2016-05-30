@@ -1,7 +1,5 @@
 (ns amanas17.maia.p1-3
-  (:use ;;[clojure.edn :as edn]
-        [amanas17.maia.symbols]
-        [amanas17.maia.p1-1]))
+  (:use [amanas17.maia.p1-1]))
 
 ;; Ejercicio 1.8
 (defn leer-ejemplos [f]
@@ -12,7 +10,7 @@
 
 ;; Ejercicio 1.9
 (defn anadir-ejemplo [xs x]
-  (conj xs x))
+  (concat xs [x]))
 
 (he-tardado 30 1.9)
 
@@ -33,6 +31,6 @@
    Asume que las dos listas tienen descripción de atributos
    La lista devuelta también tiene cabecera con descripción de atributos"
   ([xs1] xs1)
-  ([xs1 xs2] (into xs1 (rest xs2))))
+  ([xs1 xs2] (concat xs1 (rest xs2))))
 
 (he-tardado 60 1.11)

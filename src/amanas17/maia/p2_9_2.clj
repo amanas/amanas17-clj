@@ -1,6 +1,5 @@
 (ns amanas17.maia.p2-9-2
-  (:use [amanas17.maia.symbols]
-        [amanas17.maia.p1-1]
+  (:use [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
         [amanas17.maia.p1-4]
         [amanas17.maia.p1-6]
@@ -27,23 +26,23 @@
 
 (assert (= (nuevo-conceptoNB (first ejemplos))
            ['(+
-              0
-              ([soleado 0] [nublado 0] [lluvioso 0])
-              [numerico 0 0]
-              [numerico 0 0]
-              ([no 0] [si 0])
-              ([contento 0] [triste 0])
-              ([relajado 0] [estresado 0])
-              ([solvente 0] [insuficiente 0]))
+               0
+               ([soleado 0] [nublado 0] [lluvioso 0])
+               [numerico 0 0]
+               [numerico 0 0]
+               ([no 0] [si 0])
+               ([contento 0] [triste 0])
+               ([relajado 0] [estresado 0])
+               ([solvente 0] [insuficiente 0]))
             '(-
-              0
-              ([soleado 0] [nublado 0] [lluvioso 0])
-              [numerico 0 0]
-              [numerico 0 0]
-              ([no 0] [si 0])
-              ([contento 0] [triste 0])
-              ([relajado 0] [estresado 0])
-              ([solvente 0] [insuficiente 0]))]))
+               0
+               ([soleado 0] [nublado 0] [lluvioso 0])
+               [numerico 0 0]
+               [numerico 0 0]
+               ([no 0] [si 0])
+               ([contento 0] [triste 0])
+               ([relajado 0] [estresado 0])
+               ([solvente 0] [insuficiente 0]))]))
 
 ;; Ejercicio 2.37
 (defn INB
@@ -58,7 +57,7 @@
                     [(nth dist 0) (+ (nth dist 1) value) (+ (nth dist 2) (Math/pow value 2))]
                     (map (fn [[nombre contador]]
                            [nombre (if (= nombre value) (inc contador) contador)])
-                        dist)))]
+                         dist)))]
     (concat remain-NB [(concat [(first update-NB) (inc (second update-NB))] (map updater pairs))])))
 
 (he-tardado 60 2.37)
@@ -76,23 +75,23 @@
 
 (assert (= (NB ejemplos)
            ['(-
-              11
-              ([soleado 1] [nublado 4] [lluvioso 6])
-              [numerico 276 7968.0]
-              [numerico 879 71181.0]
-              ([no 7] [si 4])
-              ([contento 5] [triste 6])
-              ([relajado 5] [estresado 6])
-              ([solvente 3] [insuficiente 8]))
+               11
+               ([soleado 1] [nublado 4] [lluvioso 6])
+               [numerico 276 7968.0]
+               [numerico 879 71181.0]
+               ([no 7] [si 4])
+               ([contento 5] [triste 6])
+               ([relajado 5] [estresado 6])
+               ([solvente 3] [insuficiente 8]))
             '(+
-              9
-              ([soleado 3] [nublado 4] [lluvioso 2])
-              [numerico 242 6720.0]
-              [numerico 754 63524.0]
-              ([no 7] [si 2])
-              ([contento 9] [triste 0])
-              ([relajado 7] [estresado 2])
-              ([solvente 8] [insuficiente 1]))]))
+               9
+               ([soleado 3] [nublado 4] [lluvioso 2])
+               [numerico 242 6720.0]
+               [numerico 754 63524.0]
+               ([no 7] [si 2])
+               ([contento 9] [triste 0])
+               ([relajado 7] [estresado 2])
+               ([solvente 8] [insuficiente 1]))]))
 
 (he-tardado 10 2.38)
 
@@ -136,32 +135,32 @@
            [dist+ & dists+] more+
            [dist- & dists-] more-]
       (if (nil? i) probs
-          (if (number? i)
-            (let [[_ x+ x+2] dist+
-                  [_ x- x-2] dist-
-                  m+ (media x+ n+)
-                  v+ (varianza x+2 m+ n+)
-                  m- (media x- n-)
-                  v- (varianza x-2 m- n-)
-                  n (+ n+ n-)
-                  x (+ x+ x-)
-                  x2 (+ x+2 x-2)
-                  m (media x n)
-                  v (varianza x2 m n)
-                  Pi|c (norm-pdf i m+ v+)
-                  Pc (/ n+ n)
-                  Pi (norm-pdf i m v)
-                  Pc|i (/ (* Pi|c Pc) Pi)]
-              (recur (concat probs [Pc|i]) is dists+ dists-))
-            (let [s+ (second (first (filter (fn [[a b]] (= a i)) dist+)))
-                  tot+ (reduce + (map second dist+))
-                  s- (second (first (filter (fn [[a b]] (= a i)) dist-)))
-                  tot- (reduce + (map second dist-))
-                  Pi|c (/ s+ tot+)
-                  Pc (/ n+ (+ n+ n-))
-                  Pi (/ (+ s+ s-) (+ tot+ tot-))
-                  Pc|i (/ (* Pi|c Pc) Pi)]
-              (recur (concat probs [Pc|i]) is dists+ dists-)))))))
+                   (if (number? i)
+                     (let [[_ x+ x+2] dist+
+                           [_ x- x-2] dist-
+                           m+ (media x+ n+)
+                           v+ (varianza x+2 m+ n+)
+                           m- (media x- n-)
+                           v- (varianza x-2 m- n-)
+                           n (+ n+ n-)
+                           x (+ x+ x-)
+                           x2 (+ x+2 x-2)
+                           m (media x n)
+                           v (varianza x2 m n)
+                           Pi|c (norm-pdf i m+ v+)
+                           Pc (/ n+ n)
+                           Pi (norm-pdf i m v)
+                           Pc|i (/ (* Pi|c Pc) Pi)]
+                       (recur (concat probs [Pc|i]) is dists+ dists-))
+                     (let [s+ (second (first (filter (fn [[a b]] (= a i)) dist+)))
+                           tot+ (reduce + (map second dist+))
+                           s- (second (first (filter (fn [[a b]] (= a i)) dist-)))
+                           tot- (reduce + (map second dist-))
+                           Pi|c (/ s+ tot+)
+                           Pc (/ n+ (+ n+ n-))
+                           Pi (/ (+ s+ s-) (+ tot+ tot-))
+                           Pc|i (/ (* Pi|c Pc) Pi)]
+                       (recur (concat probs [Pc|i]) is dists+ dists-)))))))
 
 (he-tardado 120 2.40)
 

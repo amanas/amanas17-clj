@@ -1,5 +1,4 @@
-(ns amanas17.maia.p1-1
-  (:use [amanas17.maia.symbols]))
+(ns amanas17.maia.p1-1)
 
 (defn he-tardado [m e]
   (prn (str "He tardado " m " minutos en el ejercicio " e)))

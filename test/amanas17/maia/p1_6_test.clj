@@ -1,5 +1,5 @@
 (ns amanas17.maia.p1-6-test
-  (:use [amanas17.maia.symbols]
+  (:use
         [amanas17.maia.p1-4]
         [amanas17.maia.p1-5]
         [amanas17.maia.p1-6]))
