@@ -22,7 +22,7 @@
   [p [head & body :as list]]
   (let [m (* p (count body))
         rxs (sort-randomly body)]
-    [(into [head] (take m rxs)) (into [head] (drop m rxs))]))
+    [(concat [head] (take m rxs)) (concat [head] (drop m rxs))]))
 
 (he-tardado 240 1.12)
 

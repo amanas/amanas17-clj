@@ -29,7 +29,6 @@
        (map first)
        reverse))
 
-;; TODO: test me
 (defn cmp-concepto-TC
   "Compara dos conceptos TC. Devuelve:
    1 si TC1 es más general que TC2
@@ -113,9 +112,9 @@
 (comment (time (prn (HTC ejemplos))))
 ;; Compare el concepto TC devuelto por HTC con el concepto CL obtenido por HGS
 ;; y el concepto CL del ejercicio 3.
-;; Mi buen concepto:        [  [soleado] [20 30]   [60 80]   [no] [contento] [**] [solvente]]
-;; El concepto con HGS es:  [  [**]      [22 40]   [79 +inf] [**] [contento] [**] [**]]
-;; El concepto con HTC es:  [7 [**]      [-inf 37] [65 +inf] [**] [contento] [**] [solvente]]
+;; Mi buen concepto:        [  [soleado] [20 30]   [60 80]   [no] [contento] [*] [solvente]]
+;; El concepto con EGS es:  [  [soleado] [-inf 35] [-inf 70] [*]  [*]        [*]  [*]]
+;; El concepto con HTC es:  [7 [*]       [6 +inf]  [-inf 70] [*]  [*]        [*]  [*]]
 
 ;; El concepto devuelto por HTC es perfectamente coherente con el concepto que yo había
 ;; definido como buen día para salir el campo. De hecho es bastante más parecido que el devuelto
@@ -173,25 +172,29 @@
   ([concepto-UU ejemplos revision-rate]
    (loop [[ATTS [& values] :as H] concepto-UU
           [I & more] (rest ejemplos)]
-     (if (empty? more) H
-                       (let [C (last I)
-                             P (last (LUUi H (butlast I)))
-                             S (cond (and (= '- P) (= '+ C)) 1
-                                     (and (= '+ P) (= '- C)) -1
-                                     :else nil)
-                             new-H (if (= C P) H
-                                               (let [new-values (map (fn [i] (+ (nth values i)
-                                                                                (* S revision-rate
-                                                                                   (traducir (nth ATTS i) (nth I i)))))
-                                                                     (range (dec (count values))))
-                                                     new-umbral (+ (last values) (* S revision-rate))]
-                                                 [ATTS (conj new-values new-umbral)]))]
-                         (recur new-H more))))))
+     (if (empty? more)
+       H
+       (let [C (last I)
+             P (last (LUUi H (butlast I)))
+             S (cond (and (= '- P) (= '+ C)) 1
+                     (and (= '+ P) (= '- C)) -1
+                     :else nil)
+             new-H (if (= C P)
+                     H
+                     (let [new-values
+                           (map (fn [i]
+                                  (+ (nth values i)
+                                     (* S revision-rate
+                                        (traducir (nth ATTS i) (nth I i)))))
+                                (range (dec (count values))))
+                           new-umbral (+ (last values) (* S revision-rate))]
+                       [ATTS (conj new-values new-umbral)]))]
+         (recur new-H more))))))
 
-(nuevo-conceptoUU (first ejemplos) 1)
+(nuevo-conceptoUU (first all-ejemplos) 1)
 
 ;; Compruebo el funcionamiento de PRM con los ejemplos
-(comment (PRM (nuevo-conceptoUU (first ejemplos) 1) ejemplos))
+(comment (PRM (nuevo-conceptoUU (first all-ejemplos) 1) all-ejemplos))
 ;; El resultado es:
 ;; [[[perspectiva [soleado nublado lluvioso]]
 ;;   [temperatura numerico]
@@ -201,8 +204,8 @@
 ;;   [estres [relajado estresado]]
 ;;   [dinero [solvente insuficiente]]
 ;;   [clase [+ -]]]
-;;  (67.3119909365632 -49.63241875963577 71.07636919605358 -3.6134332324820093
-;;   -15.60308212217015 22.958175819659417 -4.640461642714797 -52.24932562089108)
+;;  (-44.383805766568 -16.086289740523597 -13.239547202258358 -13.623480206900027
+;;   -15.630331093156265 -20.404609821193304 -49.401342824614545 -37.03602040856606)
 
 (he-tardado 120 2.30)
 
@@ -217,14 +220,16 @@
   ([[meta & instances :as ejemplos] revision-rate max-iterations]
    (loop [H (nuevo-conceptoUU meta 1)
           COUNT max-iterations]
-     (if (= 0 COUNT) H
-                     (let [NO-ERRORS (every? true? (map (fn [i] (= (last i) (last (LUUi H (butlast i))))) instances))]
-                       (if NO-ERRORS H
-                                     (recur (PRM H ejemplos revision-rate) (dec COUNT))))))))
+     (if (= 0 COUNT)
+       H
+       (let [NO-ERRORS (every? true? (map (fn [i] (= (last i) (last (LUUi H (butlast i))))) instances))]
+         (if NO-ERRORS
+           H
+           (recur (PRM H ejemplos revision-rate) (dec COUNT))))))))
 
 
 ;; El resultado con mis ejemplos de entrenamiento es el siguiente
-(comment (prn (PCP ejemplos)))
+(comment (prn (PCP all-ejemplos)))
 ;; [[[perspectiva [soleado nublado lluvioso]]
 ;;   [temperatura numerico]
 ;;   [humedad numerico]
@@ -233,8 +238,8 @@
 ;;   [estres [relajado estresado]]
 ;;   [dinero [solvente insuficiente]]
 ;;   [clase [+ -]]]
-;;   (-47.37829030182132 27.696804615199255 6.785894381315444 73.67953905361594
-;;    64.16589707127343 61.34662475166874 -42.626757192216644 60.785578084347975)
+;;   (-18.211270201681756 -32.72141351918313 -20.742765012614257 45.127372896406484
+;;    -8.148694630567007 -17.940338877283438 -0.20577680512042207 -43.926932047154025)
 
 (he-tardado 120 2.31)
 
@@ -254,29 +259,33 @@
    (loop [deltas (repeat (count meta) 0)
           [meta weights :as H] (nuevo-conceptoUU meta 0.5)
           COUNT max-iterations]
-     (if (= 0 COUNT) H
-                     (let [TOTAL-ERROR (atom 0)]
-                       (doall (for [I instances]
-                                (let [Oi (traducir (last meta) (last I))
-                                      Pi (traducir (last meta) (last (LUUi H (butlast I))))]
-                                  (swap! TOTAL-ERROR + (Math/pow (- Oi Pi) 2)))))
-                       (if (< @TOTAL-ERROR min-error) H
-                                                      (let [new-DW-fn (fn [i] (let [W (nth weights i)
-                                                                                    A (nth meta i)
-                                                                                    D (nth deltas i)
-                                                                                    GRADIENT (atom 0)]
-                                                                                (doall (for [I instances]
-                                                                                         (let [Oi (traducir (last meta) (last I))
-                                                                                               Pi (traducir (last meta) (last (LUUi H (butlast I))))
-                                                                                               d (* Pi (- 1 Pi) (- Oi Pi))
-                                                                                               v (traducir A (nth I i))]
-                                                                                           (swap! GRADIENT + (* gain d v)))))
-                                                                                [(+ @GRADIENT (* momentum D)) (+ W @GRADIENT (* momentum D))]))
-                                                            new-DWs (map new-DW-fn (range (count weights)))]
-                                                        (recur (map first new-DWs) [meta (map second new-DWs)] (dec COUNT)))))))))
+     (if (= 0 COUNT)
+       H
+       (let [TOTAL-ERROR (atom 0)]
+         (doall (for [I instances]
+                  (let [Oi (traducir (last meta) (last I))
+                        Pi (traducir (last meta) (last (LUUi H (butlast I))))]
+                    (swap! TOTAL-ERROR + (Math/pow (- Oi Pi) 2)))))
+         (if (< @TOTAL-ERROR min-error)
+           H
+           (let [new-DW-fn
+                 (fn [i]
+                   (let [W (nth weights i)
+                         A (nth meta i)
+                         D (nth deltas i)
+                         GRADIENT (atom 0)]
+                     (doall (for [I instances]
+                              (let [Oi (traducir (last meta) (last I))
+                                    Pi (traducir (last meta) (last (LUUi H (butlast I))))
+                                    d (* Pi (- 1 Pi) (- Oi Pi))
+                                    v (traducir A (nth I i))]
+                                (swap! GRADIENT + (* gain d v)))))
+                     [(+ @GRADIENT (* momentum D)) (+ W @GRADIENT (* momentum D))]))
+                 new-DWs (map new-DW-fn (range (count weights)))]
+             (recur (map first new-DWs) [meta (map second new-DWs)] (dec COUNT)))))))))
 
 ;; El resultado con mis ejemplos de entrenamiento es el siguiente
-(comment (LMS ejemplos))
+(comment (LMS all-ejemplos))
 ;; [[[perspectiva [soleado nublado lluvioso]]
 ;;   [temperatura numerico]
 ;;   [humedad numerico]
@@ -285,8 +294,8 @@
 ;;   [estres [relajado estresado]]
 ;;   [dinero [solvente insuficiente]]
 ;;   [clase [+ -]]]
-;;  (0.4181279262394981 0.30200783383821217 -0.29679458512083445 0.3223618080047319
-;;   0.34489402480405973 0.13501324485491817 0.4568126442095787 0.33359786235524613)]
+;;  (0.38388766148071873 -0.1605937637606173 -0.023410616245329474 0.26412345677057236
+;;   -0.03263919954078087 -0.48302186083242205 0.4315593345019314 -0.24718183805573568))
 
 (he-tardado 90 2.32)
 
@@ -295,9 +304,19 @@
 ;; (utilice la función cross-validation con folds a 10) en los conjuntos de
 ;; ejemplos buen día para salir al campo, agaricus-lepiota.scm e ionosphere.scm.
 
-(comment (cross-validation PCP LUUi ejemplos 10))
+;; El algoritmo PCP sobre los ejemplos habituales
+(comment (cross-validation PCP LUUi all-ejemplos 10))
+;; ofrece una precisión de 7/12
 
+;; El algoritmo LMS sobre los ejemplos habituales
+(comment (cross-validation LMS LUUi all-ejemplos 10))
+;; ofrece una precisión de 2/3
 
 ;; ¿Encuentra diferencias significativas?
+;; Al amparo de los resultados en la precisión, parece que LMS clasifica
+;; sutilmente mejor los ejemplos
 
-;; '(* (inf 0) b c + *)
+;; No consigo que la computación llegue a acabar con los datos ionosphere
+;; y agaricuslepiota
+(comment (cross-validation PCP LUUi ionosphere 10))
+(comment (cross-validation PCP LUUi agaricus-lepiota 10))

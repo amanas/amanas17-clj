@@ -1,6 +1,7 @@
 (ns amanas17.maia.p2-4
   (:use [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
+        [amanas17.maia.p1-6]
         [amanas17.maia.p2-1]
         [amanas17.maia.p2-2]
         [amanas17.maia.p2-3]))
@@ -40,12 +41,17 @@
   (let [meta (first NSET)
         H-match (count-matchings H NSET)]
     (->> (pmap #(for [S (especializaciones-CL H meta %)]
-                 (when (<= (count-matchings S NSET) H-match) S))
+                 (when (<= (count-matchings S NSET) H-match)
+                   S))
                (rest NSET))
          (apply concat)
          (remove nil?)
          (remove (partial = H))
-         distinct)))
+         distinct
+         ;; No consigo que la computación acabe a menos que limite el número
+         ;; de ejemplos del que construimos hipótesis en ese paso
+         shuffle
+         (take 50))))
 
 (defn none-more-general?
   "Devuelve true si ningún concepto de CSET es más general que S"
@@ -59,30 +65,37 @@
    de conjunciones lógicas.
    Devuelve el conjunto de conjunciones lógicas más generales consistentes
    con los datos de entrenamiento.
-   Asume que el primer elemento de PSET y NSET son los metadatos"
-  [PSET NSET CSET HSET]
-  (let [DUMMY (vec HSET)
-        CSET (atom (set CSET))
-        HSET (atom (set HSET))]
-    (prn "First  [CSET,HSET]=" [(count @CSET) (count @HSET)])
-    (doall (pmap (fn [H]
-                   (when-not (match-all? H PSET)
-                     (swap! HSET without H))
-                   (when-not (match-any? H NSET)
-                     (do (swap! HSET without H)
-                         (swap! CSET conj H))))
-                 DUMMY))
-    (prn "Second [CSET,HSET]=" [(count @CSET) (count @HSET)])
-    (if (empty? @HSET) (vec @CSET)
-                       (let [DUMMY (vec @HSET)
-                             NEWSET (atom #{})]
-                         (doall (pmap (fn [H]
-                                        (doall (pmap (fn [S]
-                                                       (when (none-more-general? @CSET S)
-                                                         (swap! NEWSET conj S)))
-                                                     (specs-matching<=H H NSET))))
-                                      DUMMY))
-                         (EGS0 PSET NSET @CSET @NEWSET)))))
+   Asume que el primer elemento de PSET y NSET son los metadatos
+   Los conjuntos ionosphere y agaricus-lepiota tienen muchos ejemplos,
+   por lo que para que el algoritmo acabe sin desbordarse tengo que tomar
+   samples"
+  ([PSET NSET CSET HSET]
+   (EGS0 PSET NSET CSET HSET 100))
+  ([PSET NSET CSET HSET sample-size]
+   (let [meta (first PSET)
+         PSET (cons meta (take sample-size (shuffle (rest PSET))))
+         NSET (cons meta (take sample-size (shuffle (rest NSET))))
+         CSET (atom (set CSET))
+         HSET (atom (set HSET))]
+     (prn "First  [CSET,HSET]=" [(count @CSET) (count @HSET)])
+     (doall (pmap (fn [H]
+                    (when-not (match-all? H PSET)
+                      (swap! HSET without H))
+                    (when-not (match-any? H NSET)
+                      (do (swap! HSET without H)
+                          (swap! CSET conj H))))
+                  @HSET))
+     (prn "Second [CSET,HSET]=" [(count @CSET) (count @HSET)])
+     (if (empty? @HSET)
+       (vec @CSET)
+       (let [NEWSET (atom #{})]
+         (doall (pmap (fn [H]
+                        (doall (pmap (fn [S]
+                                       (when (none-more-general? @CSET S)
+                                         (swap! NEWSET conj S)))
+                                     (specs-matching<=H H NSET))))
+                      @HSET))
+         (EGS0 PSET NSET @CSET @NEWSET))))))
 
 (defn EGS
   "Devuelve un concepto al azar del resultado de aplicar EGS0 a los ejemplos
@@ -92,28 +105,31 @@
         ej+ (->> ejemplos rest (filter (comp (partial = '+) last)))
         ej- (->> ejemplos rest (filter (comp (partial = '-) last)))
         egs0 (EGS0 (cons meta ej+) (cons meta ej-) [] [(concepto-CL-mas-general meta)])]
-    ;; (clojure.pprint/pprint egs0)
     (prn "Total" (count egs0))
+    (clojure.pprint/pprint egs0)
     (obtener-al-azar egs0)))
 
 ;; He realizad una llamado a EGS con el conjunto de ejemplos habitual
-(comment (time (EGS ejemplos)))
+(comment (time (EGS all-ejemplos)))
+
 ;; El resultado ha sido:
-;; [[**] [27 35] [65 95] [**] [contento] [**] [**]]
+;; [[soleado] [-inf 35] [-inf 70] (*) (*) (*) (*)]
 ;; Previamente, el concepto que yo tenía definido como
 ;; buen día para salir el campo era:
-;; [[soleado] [20 30] [60 80] [no] [contento] [**] [solvente]]
+;; '((soleado) (20 30) (50 55) (no) (contento) (*) (solvente)))
+
 ;; Observo que:
 ;; 1. Mi concepto de buen día para salir está incorporado en el concepto
 ;;    que devuelve el algoritmo EGS
 ;; 2. Sin embargo, el concepto que devuelve el algoritmo EGS es muy genérico,
 ;;    no concreta casi nada ya que deja muchos atributos completamente
 ;;    opcionales.
+
 ;; Efectivamente, tal como se indica en el material de estudio, en este
 ;; ejemplo práctico se muestra que el resultado del algoritmo EGS tiende
 ;; a devolver conceptos que describen los ejemplos de forma genérica.
 
-;; (he-tardado 300 2.15)
+(he-tardado 300 2.15)
 
 
 ;; Ejercicio 2.16
@@ -128,13 +144,54 @@
 ;; del proceso es enorme.
 
 
-;; Cargamos los ejemplos de ionosfera y agaricus-lepiota
+;; Cargamos los ejemplos de ionosfera
 (def ionosphere (leer-ejemplos "resources/maia/ionosphere.scm"))
+
+;; y lanzamos el algoritmo:
 (comment (time (EGS ionosphere)))
+
+;; El resultado para los datos del archivo ionosphere es el concepto:
+;;[(*) [0 +inf] [0.02337 +inf] [-1 +inf] [-1 +inf] [-1 +inf] (*) [-1 +inf]
+;; (*) [-1 +inf] (*) (*) (*) (*) (*) [-0.97515 +inf] (*) [-1 +inf] (*) (*)
+;; (*) (*) (*) (*) (*) (*) (*) (*) (*) (*) (*) (*) (*) (*)]
+
+;; El algoritmo ha tardado:
+;; 94 segundos
+
+;; Las trazas que ha dejado son:
+;; "First  [CSET,HSET]=" [0 1]
+;; "Second [CSET,HSET]=" [0 1]
+;; "First  [CSET,HSET]=" [0 50]
+;; "Second [CSET,HSET]=" [6 1]
+;; "First  [CSET,HSET]=" [6 50]
+;; "Second [CSET,HSET]=" [17 1]
+;; "First  [CSET,HSET]=" [17 50]
+;; "Second [CSET,HSET]=" [20 2]
+;; "First  [CSET,HSET]=" [20 100]
+;; "Second [CSET,HSET]=" [38 3]
+;; "First  [CSET,HSET]=" [38 144]
+;; "Second [CSET,HSET]=" [84 5]
+;; "First  [CSET,HSET]=" [84 248]
+;; "Second [CSET,HSET]=" [170 10]
+;; "First  [CSET,HSET]=" [170 449]
+;; "Second [CSET,HSET]=" [290 15]
+;; "First  [CSET,HSET]=" [290 691]
+;; "Second [CSET,HSET]=" [385 20]
+;; "First  [CSET,HSET]=" [385 949]
+;; "Second [CSET,HSET]=" [542 21]
+;; "First  [CSET,HSET]=" [542 1024]
+;; "Second [CSET,HSET]=" [634 22]
+;; "First  [CSET,HSET]=" [634 1081]
+;; "Second [CSET,HSET]=" [781 0]
+;; "Total" 781
+
+
+;; Cargamos los ejemplos agaricus-lepiota
 (def agaricus-lepiota (leer-ejemplos "resources/maia/agaricus-lepiota.scm"))
+
+;; y lanzamos el algoritmo:
 (comment (time (EGS agaricus-lepiota)))
 
-;; Pese a lo anterior y cientos de mejoras con las que he probado, principalmente
-;; de cacheo de comprobaciones intermedias, no he podido acabar con éxito la ejecución de EGS
-;; en los archivos indicados, puesto que el proceso parece no acabar nunca. LLega un
-;; momento en el que tengo la sensación de que el ordenador se va a quemar.
+;; No consigo que el algoritmo acabe nunca
+
+

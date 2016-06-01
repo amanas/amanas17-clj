@@ -24,8 +24,8 @@
         (recur more (concat template [['numerico 0 0]]))
         (recur more (concat template [(map (fn [v] [v 0]) a-desc)]))))))
 
-(assert (= (nuevo-conceptoNB (first ejemplos))
-           ['(+
+(assert (= (nuevo-conceptoNB (first all-ejemplos))
+           '((+
                0
                ([soleado 0] [nublado 0] [lluvioso 0])
                [numerico 0 0]
@@ -34,15 +34,15 @@
                ([contento 0] [triste 0])
                ([relajado 0] [estresado 0])
                ([solvente 0] [insuficiente 0]))
-            '(-
-               0
-               ([soleado 0] [nublado 0] [lluvioso 0])
-               [numerico 0 0]
-               [numerico 0 0]
-               ([no 0] [si 0])
-               ([contento 0] [triste 0])
-               ([relajado 0] [estresado 0])
-               ([solvente 0] [insuficiente 0]))]))
+              (-
+                0
+                ([soleado 0] [nublado 0] [lluvioso 0])
+                [numerico 0 0]
+                [numerico 0 0]
+                ([no 0] [si 0])
+                ([contento 0] [triste 0])
+                ([relajado 0] [estresado 0])
+                ([solvente 0] [insuficiente 0])))))
 
 ;; Ejercicio 2.37
 (defn INB
@@ -73,25 +73,25 @@
       conceptoNB
       (recur (INB conceptoNB ejemplo) more))))
 
-(assert (= (NB ejemplos)
-           ['(-
+(assert (= (NB all-ejemplos)
+           '((+
                11
-               ([soleado 1] [nublado 4] [lluvioso 6])
-               [numerico 276 7968.0]
-               [numerico 879 71181.0]
-               ([no 7] [si 4])
-               ([contento 5] [triste 6])
-               ([relajado 5] [estresado 6])
-               ([solvente 3] [insuficiente 8]))
-            '(+
-               9
-               ([soleado 3] [nublado 4] [lluvioso 2])
-               [numerico 242 6720.0]
-               [numerico 754 63524.0]
-               ([no 7] [si 2])
-               ([contento 9] [triste 0])
-               ([relajado 7] [estresado 2])
-               ([solvente 8] [insuficiente 1]))]))
+               ([soleado 4] [nublado 5] [lluvioso 2])
+               [numerico 292 7988.0]
+               [numerico 591 31859.0]
+               ([no 9] [si 2])
+               ([contento 10] [triste 1])
+               ([relajado 8] [estresado 3])
+               ([solvente 10] [insuficiente 1]))
+              (-
+                14
+                ([soleado 1] [nublado 5] [lluvioso 8])
+                [numerico 345 9749.0]
+                [numerico 1115 89987.0]
+                ([no 9] [si 5])
+                ([contento 6] [triste 8])
+                ([relajado 8] [estresado 6])
+                ([solvente 5] [insuficiente 9])))))
 
 (he-tardado 10 2.38)
 
@@ -185,7 +185,6 @@
   [conceptoNB ejemplo]
   (= (last ejemplo) (last (NBi conceptoNB (butlast ejemplo)))))
 
-;; (map (partial match-NB (NB ejemplos)) (rest ejemplos))
 (he-tardado 60 2.41)
 
 ;; Ejercicio 2.42
@@ -194,6 +193,56 @@
 (def stratified-cross-validation (partial cross-validation stratify))
 
 
-(prn (stratified-cross-validation HGS CLi ejemplos 10))
-(prn (stratified-cross-validation HTC CLi ejemplos 10))
-;; (prn (stratified-cross-validation NB  NBi ejemplos 10))
+(comment (stratified-cross-validation HGS CLi all-ejemplos 10))
+;; Precision: 106/120
+(comment (stratified-cross-validation HTC CLi all-ejemplos 10))
+;; Precision: 82/120
+(comment (stratified-cross-validation PCP LUUi all-ejemplos 10))
+;; Precision: 32/120
+(comment (stratified-cross-validation LMS LUUi all-ejemplos 10))
+;; Precision: 67/120
+(comment (stratified-cross-validation IB IBi all-ejemplos 10))
+;; Precision: 77/120
+(comment (stratified-cross-validation NB NBi all-ejemplos 10))
+;; Precision: 100/120
+
+;; Curiosamente el algoritmo que más destaca para mis ejemplos es HGS.
+;; Me resulta un poco sorprendente porque yo confiaba más en algoritmos
+;; con una mayor componente matemática (PCP, LMS, NB) y no sólo basados en
+;; comparaciones lógicas.
+;; En cualquier caso, NB en la segunda posición también ofrece muy buenos
+;; resultados.
+;; El hecho que PCP ofrezca tan nefastos resultados me hace pensar que seguramente
+;; tengo un bug en el código.
+;; TODO: revisar PCP
+
+(he-tardado 60 2.42)
+
+;; Como de costrubre, no consigo que la computación acabe nunca para los ejemplos
+;; ionosphere y agaricus-lepiota en la mayoría de los algoritmos
+
+(comment (stratified-cross-validation HGS CLi ionosphere 10))
+;; Precisión: La computación parece no acabar nunca
+(comment (stratified-cross-validation HTC CLi ionosphere 10))
+;; Precision: La computación parece no acabar nunca
+(comment (stratified-cross-validation PCP LUUi ionosphere 10))
+;; Precision: La computación parece no acabar nunca
+(comment (stratified-cross-validation LMS LUUi ionosphere 10))
+;; Precision: La computación parece no acabar nunca
+(comment (stratified-cross-validation IB IBi ionosphere 10))
+;; Precision: La computación parece no acabar nunca
+(comment (stratified-cross-validation NB NBi ionosphere 10))
+;; Precision: 4399/12600, bastante baja
+
+(comment (stratified-cross-validation HGS CLi agaricus-lepiota 10))
+;; Precisión: La computación parece no acabar nunca
+(comment (stratified-cross-validation HTC CLi agaricus-lepiota 10))
+;; Precision: La computación parece no acabar nunca
+(comment (stratified-cross-validation PCP LUUi agaricus-lepiota 10))
+;; Precision: La computación parece no acabar nunca
+(comment (stratified-cross-validation LMS LUUi agaricus-lepiota 10))
+;; Precision: La computación parece no acabar nunca
+(comment (stratified-cross-validation IB IBi agaricus-lepiota 10))
+;; Precision: La computación parece no acabar nunca
+(comment (stratified-cross-validation NB NBi agaricus-lepiota 10))
+;; Precision: La computación parece no acabar nunca

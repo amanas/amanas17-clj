@@ -40,17 +40,19 @@
    Si el ejemplo es negativo o el concepto ya incluye el ejemplo, devuelve el
    concepto tal cual lo recibe."
   [concepto-CL indice-atributo ejemplo]
-  (if (= '- (last ejemplo)) concepto-CL
-                            (let [test (nth concepto-CL indice-atributo)
-                                  atributo (nth ejemplo indice-atributo)]
-                              (if (match-numerico? test atributo) concepto-CL
-                                                                  (let [[a b :as t] (normalize-numerico test)
-                                                                        gener (cond (= '() t) [atributo]
-                                                                                    (= '(*) t) t
-                                                                                    (extremo<= atributo a) (normalize-numerico [[atributo] b])
-                                                                                    (extremo<= b atributo) (normalize-numerico [a [atributo]])
-                                                                                    :else test)]
-                                                                    (assoc (vec concepto-CL) indice-atributo gener))))))
+  (if (= '- (last ejemplo))
+    concepto-CL
+    (let [test (nth concepto-CL indice-atributo)
+          atributo (nth ejemplo indice-atributo)]
+      (if (match-numerico? test atributo)
+        concepto-CL
+        (let [[a b :as t] (normalize-numerico test)
+              gener (cond (= '() t) [atributo]
+                          (= '(*) t) t
+                          (extremo<= atributo a) (normalize-numerico [[atributo] b])
+                          (extremo<= b atributo) (normalize-numerico [a [atributo]])
+                          :else test)]
+          (assoc (vec concepto-CL) indice-atributo gener))))))
 
 ;; Ejercicio 2.12
 (defn especializaciones-atributo-numerico
@@ -59,16 +61,18 @@
    Si el ejemplo es positivo o el concepto ya excluye el ejemplo, devuelve una lista
    cuyo único elemento es el concepto."
   [concepto-CL indice-atributo ejemplo]
-  (if (= '+ (last ejemplo)) [concepto-CL]
-                            (let [test (nth concepto-CL indice-atributo)
-                                  atributo (nth ejemplo indice-atributo)]
-                              (if-not (match-numerico? test atributo) [concepto-CL]
-                                                                      (let [[a b :as t] (normalize-numerico test)
-                                                                            specs (cond (= '() t) [t]
-                                                                                        (= '(*) t) [['-inf atributo] [atributo '+inf]]
-                                                                                        :else [(normalize-numerico [a atributo])
-                                                                                               (normalize-numerico [atributo b])])]
-                                                                        (map (partial assoc (vec concepto-CL) indice-atributo) specs))))))
+  (if (= '+ (last ejemplo))
+    [concepto-CL]
+    (let [test (nth concepto-CL indice-atributo)
+          atributo (nth ejemplo indice-atributo)]
+      (if-not (match-numerico? test atributo)
+        [concepto-CL]
+        (let [[a b :as t] (normalize-numerico test)
+              specs (cond (= '() t) [t]
+                          (= '(*) t) [['-inf atributo] [atributo '+inf]]
+                          :else [(normalize-numerico [a atributo])
+                                 (normalize-numerico [atributo b])])]
+          (map (partial assoc (vec concepto-CL) indice-atributo) specs))))))
 
 ;; Ejercicio 2.13
 (defn generalizaciones-CL

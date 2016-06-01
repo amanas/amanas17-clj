@@ -54,12 +54,11 @@
 
 ;; Ejercicio 1.24
 (defn cross-validation
-  "Técnica de apendizaje consistente en:
-    - generar tantos folds en el conjunto entrenamiento como indica n-folds
+  " - generar tantos folds en el conjunto entrenamiento como indica n-folds
     - después iterar del modo siguiente:
       - para cada fold entrenar en el conjunto de ejemplos que no están en el fold
       - para cada fold evaluar con el conjunto de ejemplos del fold
-    y por último devolver la media de las precisiones"
+    y por último devuelve la media de las precisiones"
   ([entrenador interprete entrenamiento n-folds]
    (cross-validation folds entrenador interprete entrenamiento n-folds))
   ([split-fn entrenador interprete entrenamiento n-folds]

@@ -146,13 +146,7 @@
 (def concepto-mas-general-posible '((*) (*) (*) (*) (*) (*) (*)))
 (def concepto-mas-especifico-posible '(() () () () () () ()))
 ;; Un concepto que para mí podría suponer un buen día para salir al campo es
-(def concepto-mas-cercano-para-mi '((soleado)
-                                     (20 30)
-                                     (50 55)
-                                     (no)
-                                     (contento)
-                                     (*)
-                                     (solvente)))
+(def concepto-mas-cercano-para-mi '((soleado) (20 30) (50 55) (no) (contento) (*) (solvente)))
 
 (he-tardado 20 2.3)
 

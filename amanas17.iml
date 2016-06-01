@@ -16,7 +16,6 @@
     <orderEntry type="library" name="Leiningen: cider/cider-nrepl:0.9.1" level="project" />
     <orderEntry type="library" name="Leiningen: clojure-complete:0.2.4" level="project" />
     <orderEntry type="library" name="Leiningen: org.clojure/clojure:1.7.0" level="project" />
-    <orderEntry type="library" name="Leiningen: org.clojure/data.csv:0.1.3" level="project" />
     <orderEntry type="library" name="Leiningen: org.clojure/tools.nrepl:0.2.12" level="project" />
     <orderEntry type="library" name="Leiningen: org.tcrawley/dynapath:0.2.3" level="project" />
     <orderEntry type="library" name="Leiningen: refactor-nrepl:1.1.0" level="project" />

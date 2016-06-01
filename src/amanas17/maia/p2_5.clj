@@ -1,6 +1,7 @@
 (ns amanas17.maia.p2-5
   (:use [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]
+        [amanas17.maia.p1-6]
         [amanas17.maia.p2-1]
         [amanas17.maia.p2-2]
         [amanas17.maia.p2-3]
@@ -50,7 +51,8 @@
                         (doall (pmap (fn [S]
                                        (swap! OPEN-SET conj S)
                                        (doall (pmap (fn [C]
-                                                      (when (= -1 (cmp-concepto-CL S C))
+                                                      (when
+                                                        (= -1 (cmp-concepto-CL S C))
                                                         ;;(concepto-CL>= C S)
                                                         (if (> (score-CL C PSET NSET) (score-CL S PSET NSET))
                                                           (swap! OPEN-SET without S)
@@ -83,9 +85,9 @@
      hgs0)))
 
 ;; Al ejecutar HGS en los ejemplos
-(comment (time (HGS ejemplos 1000)))
+(comment (time (HGS all-ejemplos 1000)))
 ;; el resultado que obtengo es
-;; [[**] [22 40] [79 +inf] [**] (contento) [**] [**]]
+;; [(*) [-inf 37] [-inf 65] (*) (*) (*) (*)]
 ;; que parece describir algo mejor el concepto que para mí
 ;; es un buen día para salir al campo.
 ;; La función score trae bondades a la predicción.

@@ -43,18 +43,5 @@
          (map (fn [u] (map (partial cons u) specs-CL)))
          (apply concat)
          (cons (cons (inc umbral) concepto-CL))
-         distinct)
-    ;; (->> [umbral (inc umbral)]
-    ;;      (map (fn [u] (map (partial cons u) specs-CL)))
-    ;;      (apply concat)
-    ;;      (cons (cons (inc umbral) concepto-CL)))
-    ;; (cons (cons (inc umbral) concepto-CL)
-    ;;       (map (partial cons umbral) specs-CL))
-    ))
+         distinct)))
 
-
-;; TODO: test me
-;; (def meta (first ejemplos))
-;; (def ej+  (->> ejemplos rest (filter (comp (partial = '+) last))))
-;; (def ej- (->> ejemplos rest (filter (comp (partial = '-) last))))
-;; (especializaciones-TC [0 [**] [**] [**] [**] [**] [**] [**]] meta (first ej-))
