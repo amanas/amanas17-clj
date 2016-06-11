@@ -4,7 +4,8 @@
         [amanas17.maia.p1-6]
         [amanas17.maia.p2-1]
         [amanas17.maia.p2-2]
-        [amanas17.maia.p2-3]))
+        [amanas17.maia.p2-3]
+        [clojure.pprint]))
 
 (defn without
   "Elimina un elemento de una colección"
@@ -106,7 +107,7 @@
         ej- (->> ejemplos rest (filter (comp (partial = '-) last)))
         egs0 (EGS0 (cons meta ej+) (cons meta ej-) [] [(concepto-CL-mas-general meta)])]
     (prn "Total" (count egs0))
-    (clojure.pprint/pprint egs0)
+    (pprint egs0)
     (obtener-al-azar egs0)))
 
 ;; He realizad una llamado a EGS con el conjunto de ejemplos habitual
@@ -193,5 +194,3 @@
 (comment (time (EGS agaricus-lepiota)))
 
 ;; No consigo que el algoritmo acabe nunca
-
-
