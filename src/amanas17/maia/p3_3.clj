@@ -12,7 +12,8 @@
         [amanas17.maia.p2-7]
         [amanas17.maia.p2-9-0]
         [amanas17.maia.p2-9-1]
-        [amanas17.maia.p2-9-2]))
+        [amanas17.maia.p2-9-2]
+        [amanas17.maia.p3-2]))
 
 ;; Ejercicio 3.11
 (defn dividir-ejemplos
@@ -87,6 +88,8 @@
 
 ;; Ejercicio 3.13
 (defn capacidad-de-discriminacion1
+  "Devuelve la capacidad de discriminaión de un discriminante.
+  Asume que los ejemplos tienen cabecera de atributos."
   [discriminante [metadatos & ejemplos :as input]]
   (/ (reduce +
              (for [[nombre & ejemplos] (dividir-ejemplos discriminante ejemplos)]
@@ -131,12 +134,14 @@
 (defn mayor-discriminante
   "Devuelva una lista en la que el primer elemento es el discriminante que mayor valor
   obtuvo en la función capacidad-de-discriminacion.
-  El resto de la lista son el resto de discriminantes."
+  El resto de la lista son el resto de discriminantes.
+  Asume que los ejemplos tienen cabecera de descripción de atributos"
   [lista-de-discriminantes ejemplos-disponibles]
-  (let [mayor-discriminate (->> lista-de-discriminantes
-                                (sort-by (fn [d] (capacidad-de-discriminacion1 d ejemplos-disponibles)))
-                                last)]
-    (concat [mayor-discriminate] (remove (fn [d] (= d mayor-discriminate)) lista-de-discriminantes))))
+  (let [mayor-d (->> lista-de-discriminantes
+                     reverse
+                     (sort-by (fn [d] (capacidad-de-discriminacion1 d ejemplos-disponibles)))
+                     last)]
+    (concat [mayor-d] (remove (fn [d] (= d mayor-d)) lista-de-discriminantes))))
 
 (assert (= (mayor-discriminante
              '((perspectiva 0 (soleado lluvioso))
@@ -147,33 +152,68 @@
                  (temperatura numerico)
                  (clase (+ -)))
                 (soleado 10 -) (soleado 25 +) (lluvioso 30 -)))
-           '((temperatura 1 numerico 30)
-              (perspectiva 0 (soleado lluvioso))
+           '((perspectiva 0 (soleado lluvioso))
               (temperatura 1 numerico 10)
-              (temperatura 1 numerico 25))))
+              (temperatura 1 numerico 25)
+              (temperatura 1 numerico 30))))
 
 (he-tardado 40 3.14)
 
 ;; Ejercicio 3.15
+
+(defn division-desc->adc-desc
+  "Transforma el resultado de dividir ejemplos con un discriminante a una secuencia
+  de símbolos que puede consistente con adc y matchCL"
+  [[a b c d :as discriminante] metadatos [desc & ejemplos :as division]]
+  (let [*seq (repeat '(*))
+        new-desc (if (= 'numerico c)
+                   (let [[s v] desc]
+                     (if (= '>= s) (list [v] '+inf) (list '-inf v)))
+                   (list desc))]
+    (concat (take b *seq) [new-desc] (take (- (count metadatos) b 2) *seq))))
+
+(defn generate-DDT0-tree
+  [discriminantes [metadatos & ejemplos :as input]]
+  (if (empty? ejemplos)
+    (list '=> 'UNKNOWN)
+    (if (or (empty? discriminantes)
+            (= 1 (count (distinct (map last ejemplos)))))
+      (list '=> (last (first ejemplos)))
+      (let [mayor-d (first (mayor-discriminante discriminantes input))
+            rest-d (remove (partial = mayor-d) discriminantes)
+            divisiones (dividir-ejemplos mayor-d ejemplos)]
+        (map (fn [[desc & ejemplos :as division]]
+               (list (division-desc->adc-desc mayor-d metadatos division)
+                     '->
+                     (generate-DDT0-tree rest-d (concat [metadatos] ejemplos))))
+             divisiones)))))
+
+
 (defn DDT0
   ""
-  [lista-de-discriminantes-disponibles ejemplos-disponibles])
+  [discriminantes [metadatos & ejemplos :as input]]
+  (concat ['adc] (generate-DDT0-tree discriminantes input)))
 
-(DDT0
-  '((perspectiva 0 (soleado lluvioso nublado))
-     (temperatura 1 numerico 10)
-     (temperatura 1 numerico 25)
-     (temperatura 1 numerico 30))
-  '((soleado 10 +) (lluvioso 25 -) (nublado 30 +)))
-;Imaginando que se ha escogido "perspectiva" como
-;más discriminante, entonces lo que devolvería esta llamada
-;sería algo como lo siguiente, recursivamente...
-'(adc
-   (((soleado) (*)) -> (DDT0 '((temperatura 1 numerico 10)
-                                (temperatura 1 numerico 25)
-                                (temperatura 1 numerico 30))
-                             (filter (lambda (ej) (match-CL '((soleado) (*)) (drop-right ej 1)))
-                                     ejemplos-disponibles)))
-   (((lluvioso) (*)) -> ...)
-   (((nublado) (*)) -> ...))
+(assert (= (DDT0 '((perspectiva 0 (soleado lluvioso nublado))
+                    (temperatura 1 numerico 10)
+                    (temperatura 1 numerico 25)
+                    (temperatura 1 numerico 30))
+                 '(((perspectiva (soleado lluvioso nublado))
+                     (temperatura numerico)
+                     (clase (+ -)))
+                    (soleado 10 +) (lluvioso 25 -) (nublado 30 +))))
+        '(adc
+           (((soleado) (*)) -> (=> +))
+           (((lluvioso) (*)) -> (=> -))
+           (((nublado) (*)) -> (=> +))))
+
+(defn DDT
+  [ejemplos]
+  (DDT0 (generar-discriminantes (first ejemplos) (rest ejemplos)) ejemplos))
+
+
+(DDT ejemplos)
+
+
+
 

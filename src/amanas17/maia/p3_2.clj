@@ -54,7 +54,7 @@
 ;; Ejercicio 3.9
 
 (defn adg
-  "Método de elección de ramo para árboles de decisión generalizados"
+  "Método de elección de rama para árboles de decisión generalizados"
   [ejemplo-sin-clase ramas]
   (or (->> (for [[[f-match concepto] _ subrama] ramas]
              (let [eval-concepto (condp = (name f-match)
