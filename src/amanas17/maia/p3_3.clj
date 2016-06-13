@@ -15,6 +15,10 @@
         [amanas17.maia.p2-9-2]
         [amanas17.maia.p3-2]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Induccion conceptos JC-adc mediante DDT ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Ejercicio 3.11
 (defn dividir-ejemplos
   "Divide los ejemplos según el discriminante.
@@ -213,7 +217,3 @@
 
 
 (DDT ejemplos)
-
-
-
-

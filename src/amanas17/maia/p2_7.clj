@@ -3,6 +3,10 @@
         [amanas17.maia.p1-3]
         [amanas17.maia.p2-2]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Representación de conceptos UU ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Ejercicio 23
 (defn traducir
   "Devuelve la traduccion de un atributo nominal o valor si

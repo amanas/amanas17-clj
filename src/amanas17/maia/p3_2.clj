@@ -14,6 +14,10 @@
         [amanas17.maia.p2-9-1]
         [amanas17.maia.p2-9-2]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Representación de conceptos JC ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Ejercicio 3.7
 (defn adc
   "Elige la rama apropiada"

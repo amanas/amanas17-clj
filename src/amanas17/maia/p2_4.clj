@@ -7,6 +7,10 @@
         [amanas17.maia.p2-3]
         [clojure.pprint]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Inducción exaustiva de conceptos CL ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn without
   "Elimina un elemento de una colección"
   [coll x]

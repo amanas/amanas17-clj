@@ -6,6 +6,10 @@
         [amanas17.maia.p2-3]
         [amanas17.maia.p2-4]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Representación de conceptos TC (optativa) ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Ejercicio 2.20
 (defn match-TC
   "Determina si una tabla de criterios es satisfecha para un ejemplo"
@@ -44,4 +48,3 @@
          (apply concat)
          (cons (cons (inc umbral) concepto-CL))
          distinct)))
-

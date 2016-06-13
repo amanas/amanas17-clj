@@ -4,6 +4,10 @@
         [amanas17.maia.p1-4]
         [amanas17.maia.p1-5]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Algoritmos incrementales ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Ejercicio 1.20
 (def concepto-inicial '((+ 0) (- 0)))
 

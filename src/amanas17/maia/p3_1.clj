@@ -15,6 +15,10 @@
         [amanas17.maia.p2-9-2]
         [amanas17.maia.p3-0]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Inducción de conceptos LD ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Ejercicio 3.2
 (defn funcion-match
   "Para cada algoritmo devuelve la función match asociada"
@@ -105,17 +109,3 @@
 ;; ¿Por qué cree que es así?.
 
 ;; TODO
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -14,6 +14,10 @@
         [amanas17.maia.p2-9-1]
         [amanas17.maia.p2-9-2]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Representación de conceptos LD ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defmacro LDim
   "Macro de ayuda para interpretar evaluaciones en listas de decisión"
   [concepto ejemplo-sin-clase]
@@ -53,16 +57,3 @@
                    (match-LUU ((first ejemplos) (0 1 -1 0 0 0 0 20)) => -))
                 '(soleado 10 10 si contento relajado solvente))
            '(soleado 10 10 si contento relajado solvente)))
-
-
-
-
-
-
-
-
-
-
-
-
-

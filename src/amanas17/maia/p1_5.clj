@@ -3,6 +3,11 @@
         [amanas17.maia.p1-3]
         [amanas17.maia.p1-4]))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Primeros algoritmos de aprendizaje ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Para los siguientes ejercicios, primero traduzco a clojure la función A0
 (defn A0
   "Algoritmo de aprendizaje -  devuelve el concepto que se corresponde

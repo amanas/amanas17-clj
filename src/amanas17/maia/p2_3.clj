@@ -4,6 +4,10 @@
         [amanas17.maia.p2-1]
         [amanas17.maia.p2-2]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Representaciones CL (especializaciones/generalizaciones) ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Ejercicio 2.9
 (defn especializaciones-atributo-nominal
   "Devuelva una lista las especializaciones inmediatas del concepto en el atributo

@@ -8,6 +8,10 @@
         [amanas17.maia.p2-6]
         [amanas17.maia.p2-7]))
 
+;;;;;;;;;;;;;;;;;;
+;; Conceptos IB ;;
+;;;;;;;;;;;;;;;;;;
+
 (defn IB
   "Algoritmo de aprendizaje basado en instancias"
   [ejemplos]

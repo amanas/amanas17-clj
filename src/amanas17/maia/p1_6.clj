@@ -5,6 +5,10 @@
         [amanas17.maia.p1-5]))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Evaluación del aprendizaje ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Ejercicio 1.22
 
 (def all-ejemplos (mezclar ejemplos ejemplos2))

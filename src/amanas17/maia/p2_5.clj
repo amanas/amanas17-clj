@@ -7,6 +7,10 @@
         [amanas17.maia.p2-3]
         [amanas17.maia.p2-4]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Inducción heurística de conceptos CL ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Ejercicio 2.17
 (defn score-CL
   [concepto-CL PSET NSET]

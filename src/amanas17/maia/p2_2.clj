@@ -3,6 +3,9 @@
         [amanas17.maia.p1-3]
         [amanas17.maia.p2-1]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Representaciones CL (comparacioes)  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn test-ambivalente>=
   "Indica si un test ambivalente es más general o de la misma categoría

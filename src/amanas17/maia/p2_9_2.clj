@@ -13,6 +13,10 @@
         [amanas17.maia.p2-9-1]))
 
 
+;;;;;;;;;;;;;;;;;;
+;; Conceptos NB ;;
+;;;;;;;;;;;;;;;;;;
+
 (defn nuevo-conceptoNB
   "Crea un nuevo concepto Naive Bayes inicializado a 0 en todos sus valores"
   [metadatos]

@@ -2,8 +2,12 @@
   (:use [amanas17.maia.p1-1]
         [amanas17.maia.p1-3]))
 
-;; Por simplicidad defino los valores -infinito y +infinito como keyworkds
-;; -inf y +inf
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Representación CL (introducción) ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Por simplicidad defino los valores -infinito y +infinito por los simbolos -inf y +inf
+;; porque en clojure no se pueden utilizar los indicados en el material de estudio
 
 (defn test-ambivalente?
   "Determina si un test puede ser aplicado indistintamente
