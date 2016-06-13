@@ -21,17 +21,17 @@
 
 ;; Ejercicio 3.11
 (defn dividir-ejemplos
-  "Divide los ejemplos según el discriminante.
-  En el caso de un discriminante nominal, la función devolverá una lista
+  "Divide los ejemplos segÃºn el discriminante.
+  En el caso de un discriminante nominal, la funciÃ³n devolverÃ¡ una lista
   con varios conjuntos de ejemplos: uno por cada valor posible del atributo
   nominal correspondiente. El primer elemento de cada nuevo conjunto/lista
-  de ejemplos comenzará por el valor (del atributo) con el que han sido dis-criminados
-  En el caso de un discriminante num ́erico, la función devolverá una lista
+  de ejemplos comenzarÃ¡ por el valor (del atributo) con el que han sido dis-criminados
+  En el caso de un discriminante num Ì�erico, la funciÃ³n devolverÃ¡ una lista
   con dos conjuntos de ejemplos: uno en el que se cumpla que los valores
-  numéericos sean superiores y otro en que los valores sean inferiores
-  al umbral de discriminación. El primer elemento de cada nuevo conjunto/lista
-  de ejemplos comenzará por (>= <umbral>) o (< <umbral>) según haya sido discriminado.
-  Asume que los ejemplos NO tienen cabecera de definición de metadatos."
+  numÃ©ericos sean superiores y otro en que los valores sean inferiores
+  al umbral de discriminaciÃ³n. El primer elemento de cada nuevo conjunto/lista
+  de ejemplos comenzarÃ¡ por (>= <umbral>) o (< <umbral>) segÃºn haya sido discriminado.
+  Asume que los ejemplos NO tienen cabecera de definiciÃ³n de metadatos."
   [discriminante ejemplos-sin-metadatos]
   (if (= 3 (count discriminante))
     ;; nominal
@@ -39,7 +39,7 @@
           groups (group-by (fn [e] (nth e posicion)) ejemplos-sin-metadatos)]
       (for [valor valores]
         (concat [valor] (get groups valor))))
-    ;; numérico
+    ;; numÃ©rico
     (let [[_ posicion _ umbral] discriminante
           ge (list (list '>= umbral))
           lt (list (list '< umbral))
@@ -65,7 +65,7 @@
 ;; Ejercicio 3.12
 (defn generar-discriminantes
   "Devuelve un discriminante nominal por cada atributo nominal
-  y un discriminante numérico por cada atributo y valor numérico diferente
+  y un discriminante numÃ©rico por cada atributo y valor numÃ©rico diferente
   de todo el conjunto de ejemplos de entrenamiento"
   [metadatos ejemplos]
   (apply concat
@@ -92,7 +92,7 @@
 
 ;; Ejercicio 3.13
 (defn capacidad-de-discriminacion1
-  "Devuelve la capacidad de discriminaión de un discriminante.
+  "Devuelve la capacidad de discriminaiÃ³n de un discriminante.
   Asume que los ejemplos tienen cabecera de atributos."
   [discriminante [metadatos & ejemplos :as input]]
   (/ (reduce +
@@ -132,14 +132,14 @@
                 (soleado 10 -) (soleado 25 +) (lluvioso 30 -)))
            2/3))
 
-(he-tardado 90 2.13)
+(he-tardado 90 3.13)
 
 ;; Ejercicio 3.14
 (defn mayor-discriminante
   "Devuelva una lista en la que el primer elemento es el discriminante que mayor valor
-  obtuvo en la función capacidad-de-discriminacion.
+  obtuvo en la funciÃ³n capacidad-de-discriminacion.
   El resto de la lista son el resto de discriminantes.
-  Asume que los ejemplos tienen cabecera de descripción de atributos"
+  Asume que los ejemplos tienen cabecera de descripciÃ³n de atributos"
   [lista-de-discriminantes ejemplos-disponibles]
   (let [mayor-d (->> lista-de-discriminantes
                      reverse
@@ -167,7 +167,7 @@
 
 (defn division-desc->adc-desc
   "Transforma el resultado de dividir ejemplos con un discriminante a una secuencia
-  de símbolos que puede consistente con adc y matchCL"
+  de sÃ­mbolos que puede consistente con adc y matchCL"
   [[a b c d :as discriminante] metadatos [desc & ejemplos :as division]]
   (let [*seq (repeat '(*))
         new-desc (if (= 'numerico c)
@@ -176,27 +176,21 @@
                    (list desc))]
     (concat (take b *seq) [new-desc] (take (- (count metadatos) b 2) *seq))))
 
-(defn generate-DDT0-tree
+(defn DDT0
   [discriminantes [metadatos & ejemplos :as input]]
   (if (empty? ejemplos)
     (list '=> 'UNKNOWN)
     (if (or (empty? discriminantes)
             (= 1 (count (distinct (map last ejemplos)))))
       (list '=> (last (first ejemplos)))
-      (let [mayor-d (first (mayor-discriminante discriminantes input))
-            rest-d (remove (partial = mayor-d) discriminantes)
-            divisiones (dividir-ejemplos mayor-d ejemplos)]
-        (map (fn [[desc & ejemplos :as division]]
-               (list (division-desc->adc-desc mayor-d metadatos division)
-                     '->
-                     (generate-DDT0-tree rest-d (concat [metadatos] ejemplos))))
-             divisiones)))))
-
-
-(defn DDT0
-  ""
-  [discriminantes [metadatos & ejemplos :as input]]
-  (concat ['adc] (generate-DDT0-tree discriminantes input)))
+      (concat ['adc] (let [mayor-d (first (mayor-discriminante discriminantes input))
+                           rest-d (remove (partial = mayor-d) discriminantes)
+                           divisiones (dividir-ejemplos mayor-d ejemplos)]
+                       (map (fn [[desc & ejemplos :as division]]
+                              (list (division-desc->adc-desc mayor-d metadatos division)
+                                    '->
+                                    (generate-DDT0-tree rest-d (concat [metadatos] ejemplos))))
+                            divisiones))))))
 
 (assert (= (DDT0 '((perspectiva 0 (soleado lluvioso nublado))
                     (temperatura 1 numerico 10)
@@ -216,4 +210,5 @@
   (DDT0 (generar-discriminantes (first ejemplos) (rest ejemplos)) ejemplos))
 
 
-(DDT ejemplos)
+(comment (DDT ejemplos))
+(he-tardado 240 3.15)

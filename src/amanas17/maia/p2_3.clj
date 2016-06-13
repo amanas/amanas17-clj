@@ -58,6 +58,8 @@
                           :else test)]
           (assoc (vec concepto-CL) indice-atributo gener))))))
 
+(he-tardado 120 2.11)
+
 ;; Ejercicio 2.12
 (defn especializaciones-atributo-numerico
   "Devuelve la lista de las especializaciones inmediatas del concepto que excluyen
@@ -78,6 +80,8 @@
                                  (normalize-numerico [atributo b])])]
           (map (partial assoc (vec concepto-CL) indice-atributo) specs))))))
 
+(he-tardado 90 2.12)
+
 ;; Ejercicio 2.13
 (defn generalizaciones-CL
   "Devuelve el conjunto total de generalizaciones inmediatas (respecto a todos los
@@ -95,6 +99,8 @@
           (mapcat (partial generalizaciones-CL concepto-CL metadatos ejemplo))
           (remove (partial = concepto-CL))
           distinct))))
+
+(he-tardado 70 2.13)
 
 ;; Ejercicio 2.14
 (defn especializaciones-CL
@@ -114,3 +120,5 @@
           (mapcat (partial especializaciones-CL concepto-CL metadatos ejemplo))
           (remove (partial = concepto-CL))
           distinct))))
+          
+(he-tardado 90 2.14)

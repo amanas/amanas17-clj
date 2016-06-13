@@ -16,12 +16,12 @@
         [amanas17.maia.p3-0]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Inducción de conceptos LD ;;
+;; InducciÃ³n de conceptos LD ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Ejercicio 3.2
 (defn funcion-match
-  "Para cada algoritmo devuelve la función match asociada"
+  "Para cada algoritmo devuelve la funciÃ³n match asociada"
   [algoritmo]
   (condp = algoritmo
     HGS match-CL
@@ -38,8 +38,8 @@
 
 ;; Ejercicio 3.3
 (defn NSC0
-  "Implementación no incremental de inducción de formas normales
-  disjuntivas (DNF) usando un enfoque de divide y vencerás"
+  "ImplementaciÃ³n no incremental de inducciÃ³n de formas normales
+  disjuntivas (DNF) usando un enfoque de divide y vencerÃ¡s"
   [algoritmo PSET NSET DNF]
   (loop [PSET PSET
          NSET NSET
@@ -48,7 +48,6 @@
       DNF
       (let [concepto (algoritmo (concat PSET (rest NSET)))
             newPSET (remove (fn [e] ((funcion-match algoritmo) concepto (butlast e))) (rest PSET))
-            ;; TODO: review
             newPSET (if (= (count newPSET) (count (rest PSET))) [] newPSET)]
         (recur (cons (first PSET) newPSET) NSET (concat DNF [concepto]))))))
 
@@ -59,14 +58,15 @@
         ej- (->> ejemplos rest (filter (comp (partial = '-) last)))]
     (NSC0 algoritmo (cons meta ej+) (cons meta ej-) [])))
 
+(he-tardado 60 3.3)
 
 ;; Ejercicio 3.4
-;Estudie la salida de la función NSC a partir de los datos
-;“buen díıa para salir al campo” y los datos “agaricus-lepiota” e “ionosphere”
+;Estudie la salida de la funciÃ³n NSC a partir de los datos
+;â€œbuen dÃ­Ä±a para salir al campoâ€� y los datos â€œagaricus-lepiotaâ€� e â€œionosphereâ€�
 ;procedentes de UCI mediante los algoritmos HGS, HTC, PCP y LMS. Comen-
-;te las diferencias, por ejemplo ¿qu ́e configuración devuelve listas de mayor
-;tamaño? ¿cuáles considera que podr ́ıan ofrecer mayor precisión?
-;; TODO
+;te las diferencias, por ejemplo Â¿qu Ì�e configuraciÃ³n devuelve listas de mayor
+;tamaÃ±o? Â¿cuÃ¡les considera que podr Ì�Ä±an ofrecer mayor precisiÃ³n?
+
 (comment (NSC HGS all-ejemplos))
 (comment (NSC HTC all-ejemplos))
 (comment (NSC PCP all-ejemplos))
@@ -74,9 +74,11 @@
 (comment (NSC IB all-ejemplos))
 (comment (NSC NB all-ejemplos))
 
+(he-tardado 120 3.4)
+
 ;; Ejercicio 3.5
 (defn MSC0
-  "Algoritmo de inducción no incremental de listas de decisión multiclase"
+  "Algoritmo de inducciÃ³n no incremental de listas de decisiÃ³n multiclase"
   [algoritmo ejemplos]
   (let [meta (first ejemplos)
         CLASS-SET (second (last (first ejemplos)))
@@ -90,7 +92,7 @@
               (swap! RULE-SET concat (list (funcion-match algoritmo) D '=> CLASS))))))))
 
 (defn MSC
-  "Añade a la lista de decisión devuelta por MSC0 un valor por defecto"
+  "AÃ±ade a la lista de decisiÃ³n devuelta por MSC0 un valor por defecto"
   [algoritmo ejemplos]
   (concat (MSC0 algoritmo ejemplos)
           (list match-CL (repeat (dec (count (first ejemplos))) '(*)) '=> (A0 ejemplos)))) )
@@ -98,14 +100,4 @@
 (he-tardado 60 3.5)
 
 
-;; Ejercicio 3.6
-;; Estudie la eficiencia de MSC mediante distintas configuraciones variando
-;; el algoritmo introducido como parámetro: HGS, HTC, PCP y LMS.
-;; Para ello, denomine cada nueva función como MSC-<subalgoritmo> (p.ej. MSC-HGS).
-;;
-;; Tras ello, compruebe la eficiencia de cada uno mediante ten-fold-crossvalidation
-;; y los datos “buen d ́ıa para salir al campo”, “agaricus-lepiota”, “ionosphere”,
-;; “poker” y “lymphography”. ¿Qu ́e configuración produce mejores resultados?
-;; ¿Por qué cree que es así?.
 
-;; TODO

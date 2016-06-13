@@ -124,6 +124,7 @@
 ;; El tiempo empleado por el algoritmo para procesar los ejemplos de prueba ha sido de
 ;; 2 segundos con 5 iteraciones
 
+(he-tardado 300 2.28)
 
 ;; Ejercicio 2.29
 ;; Ejecute HTC mediante el conjunto de ejemplos agaricuslepiota.scm e ionosphere.scm
@@ -150,7 +151,8 @@
 ;; El tiempo empleado por el algoritmo para procesar el dataset agaricus-lepiota ha sido de
 ;; ... segundos con ... iteraciones (muy elevado, teniendo en cuenta que hemos utilizado un
 ;; beam-size de 1)
-;; TODO
+;; No consigo que acabe nunca
+(he-tardado 120 2.29)
 
 
 

@@ -198,3 +198,5 @@
 (comment (time (EGS agaricus-lepiota)))
 
 ;; No consigo que el algoritmo acabe nunca
+
+(he-tardado 240 2.16)

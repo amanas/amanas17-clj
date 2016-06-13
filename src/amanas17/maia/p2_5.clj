@@ -18,6 +18,8 @@
         Nc (->> NSET memo-int (remove (partial match-CL concepto-CL)) count)]
     (/ (+ Pc Nc) (+ (dec (count PSET)) (dec (count NSET))))))
 
+(he-tardado 20 2.17)
+
 ;; Ejercicio 2.18
 (defn sort-by-score-desc
   [PSET NSET conceptos]
@@ -99,9 +101,11 @@
 ;; pero las diferencias no tendrían por qué ser significativas en un contexto
 ;; tan pequeño de datos.
 
+(he-tardado 210 2.18)
 
 ;; Ejercicio 2.19
 ;; No he podido acabar con éxito la búsqueda en los archivos indicados
 ;; el el material porque siempre acabo en una StackOverflow Exception
 (comment (time (HGS ionosphere 1)))
 (comment (time (HGS agaricus-lepiota 2)))
+(he-tardado 120 2.19)

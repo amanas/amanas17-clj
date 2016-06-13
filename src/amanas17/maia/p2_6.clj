@@ -29,6 +29,8 @@
              (not (match-TC '(4 (soleado) (*) (10 40) (si)) '(soleado 30 25 no)))
              (not (match-TC '(3 (soleado) (*) (10 40) (si)) '(30 soleado 25 no)))))
 
+(he-tardado 60 2.20)
+
 ;; Ejercicio 2.21
 (defn TCi
   "Intérprete para tabla de criterios"
@@ -38,8 +40,9 @@
 (assert (= (TCi '(4 (soleado) (*) (10 (40)) (si)) '(soleado 30 40 si))
            '(soleado 30 40 si +)))
 
+(he-tardado 20 2.21)
+
 ;; Ejercicio 2.22
-;; TODO: contemplar las especializaciones en varios atributos
 (defn especializaciones-TC
   [[umbral & concepto-CL :as concepto-TC] metadatos ejemplo]
   (let [specs-CL (especializaciones-CL (vec concepto-CL) metadatos ejemplo)]
@@ -48,3 +51,5 @@
          (apply concat)
          (cons (cons (inc umbral) concepto-CL))
          distinct)))
+         
+(he-tardado 60 2.22)
